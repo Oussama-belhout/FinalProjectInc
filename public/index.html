@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sampler</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎹</text></svg>">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎹 Sampler</h1>
+        </header>
+        
+        <main>
+            <!-- Preset Controls -->
+            <div id="preset-controls">
+                <select id="preset-select">
+                    <option value="">-- Select a Preset --</option>
+                </select>
+                <button id="load-btn" disabled>Load Preset</button>
+            </div>
+            
+            <!-- Loading Progress -->
+            <div id="loading-container" class="hidden">
+                <div id="loading-text">Loading sounds... 0/0</div>
+                <div id="progress-bar">
+                    <div id="progress-fill"></div>
+                </div>
+            </div>
+            
+            <div id="pad-container"></div>
+            
+            <!-- Waveform Visualization -->
+            <div id="waveform-container">
+                <canvas id="waveform"></canvas>
+            </div>
+            
+            <!-- Trim Controls -->
+            <div id="trim-container" class="hidden">
+                <div id="trim-header">
+                    <span id="trim-title">Trim: Pad 0</span>
+                    <button id="trim-close">✕</button>
+                </div>
+                <div class="trim-control">
+                    <label>Start</label>
+                    <input type="range" id="trim-start" min="0" max="100" value="0">
+                    <span id="trim-start-value">0%</span>
+                </div>
+                <div class="trim-control">
+                    <label>End</label>
+                    <input type="range" id="trim-end" min="0" max="100" value="100">
+                    <span id="trim-end-value">100%</span>
+                </div>
+            </div>
+            
+            <!-- Test button for loading samples -->
+            <div id="test-section">
+                <button id="test-btn">🎵 Load Test Sounds</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/audioEngine.js"></script>
+    <script src="js/gui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

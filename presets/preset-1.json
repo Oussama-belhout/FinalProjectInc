@@ -1,0 +1,15 @@
+{
+  "id": "preset-1",
+  "name": "Classic Drums",
+  "description": "Classic acoustic drum kit",
+  "sounds": [
+    { "pad": 0, "url": "https://cdn.freesound.org/previews/171/171104_2394245-lq.mp3", "name": "Kick" },
+    { "pad": 1, "url": "https://cdn.freesound.org/previews/387/387186_7255534-lq.mp3", "name": "Snare" },
+    { "pad": 2, "url": "https://cdn.freesound.org/previews/100/100393_1101104-lq.mp3", "name": "Hi-Hat" },
+    { "pad": 3, "url": "https://cdn.freesound.org/previews/183/183103_2394245-lq.mp3", "name": "Clap" },
+    { "pad": 4, "url": "https://cdn.freesound.org/previews/209/209879_3797507-lq.mp3", "name": "Tom High" },
+    { "pad": 5, "url": "https://cdn.freesound.org/previews/209/209878_3797507-lq.mp3", "name": "Tom Mid" },
+    { "pad": 6, "url": "https://cdn.freesound.org/previews/209/209877_3797507-lq.mp3", "name": "Tom Low" },
+    { "pad": 7, "url": "https://cdn.freesound.org/previews/250/250547_4486188-lq.mp3", "name": "Crash" }
+  ]
+}
