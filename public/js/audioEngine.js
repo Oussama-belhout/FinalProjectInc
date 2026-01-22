@@ -65,8 +65,14 @@ class AudioEngine {
         try {
             console.log(`📥 Loading sound for pad ${padIndex}: ${url}`);
             
+            // Use proxy for external URLs to bypass CORS
+            let fetchUrl = url;
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+                fetchUrl = `/api/proxy-audio?url=${encodeURIComponent(url)}`;
+            }
+            
             // Fetch the audio file
-            const response = await fetch(url);
+            const response = await fetch(fetchUrl);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -246,5 +252,25 @@ class AudioEngine {
             start: this.trimStart[padIndex],
             end: this.trimEnd[padIndex]
         };
+    }
+
+    /**
+     * Get buffer waveform data for visualization
+     * @param {number} padIndex - Pad index (0-15)
+     * @returns {Float32Array|null} - Waveform data
+     */
+    getBufferData(padIndex) {
+        const buffer = this.buffers[padIndex];
+        if (!buffer) return null;
+        return buffer.getChannelData(0);
+    }
+
+    /**
+     * Check if a pad has a sound loaded
+     * @param {number} padIndex - Pad index (0-15)
+     * @returns {boolean}
+     */
+    hasSound(padIndex) {
+        return this.buffers[padIndex] !== null;
     }
 }

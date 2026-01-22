@@ -1,13 +1,14 @@
 {
   "id": "preset-2",
   "name": "Electronic Kit",
+  "category": "Electronic",
   "description": "Modern electronic drum sounds",
   "sounds": [
-    { "pad": 0, "url": "https://cdn.freesound.org/previews/171/171104_2394245-lq.mp3", "name": "808 Kick" },
-    { "pad": 1, "url": "https://cdn.freesound.org/previews/270/270156_5123851-lq.mp3", "name": "Snare" },
-    { "pad": 2, "url": "https://cdn.freesound.org/previews/100/100393_1101104-lq.mp3", "name": "Closed HH" },
-    { "pad": 3, "url": "https://cdn.freesound.org/previews/183/183103_2394245-lq.mp3", "name": "Clap" },
-    { "pad": 4, "url": "https://cdn.freesound.org/previews/345/345299_3467433-lq.mp3", "name": "Open HH" },
-    { "pad": 5, "url": "https://cdn.freesound.org/previews/270/270152_5123851-lq.mp3", "name": "Rim" }
+    { "pad": 0, "url": "https://raw.githubusercontent.com/wesbos/JavaScript30/master/01%20-%20JavaScript%20Drum%20Kit/sounds/kick.wav", "name": "808 Kick" },
+    { "pad": 1, "url": "https://raw.githubusercontent.com/wesbos/JavaScript30/master/01%20-%20JavaScript%20Drum%20Kit/sounds/snare.wav", "name": "Snare" },
+    { "pad": 2, "url": "https://raw.githubusercontent.com/wesbos/JavaScript30/master/01%20-%20JavaScript%20Drum%20Kit/sounds/hihat.wav", "name": "Closed HH" },
+    { "pad": 3, "url": "https://raw.githubusercontent.com/wesbos/JavaScript30/master/01%20-%20JavaScript%20Drum%20Kit/sounds/clap.wav", "name": "Clap" },
+    { "pad": 4, "url": "https://raw.githubusercontent.com/wesbos/JavaScript30/master/01%20-%20JavaScript%20Drum%20Kit/sounds/openhat.wav", "name": "Open HH" },
+    { "pad": 5, "url": "https://raw.githubusercontent.com/wesbos/JavaScript30/master/01%20-%20JavaScript%20Drum%20Kit/sounds/tink.wav", "name": "Tink" }
   ]
 }

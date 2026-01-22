@@ -16,11 +16,13 @@ class GUI {
         // Waveform canvas
         this.waveformCanvas = null;
         this.waveformCtx = null;
-        this.isDrawingWaveform = false;
         
-        // Trim controls
-        this.selectedPadForTrim = null;
-        this.trimContainer = null;
+        // Currently selected pad for waveform display
+        this.selectedPad = null;
+        
+        // Trim handle dragging state
+        this.isDragging = null; // 'start', 'end', or null
+        this.handleWidth = 12;
     }
 
     /**
@@ -33,88 +35,12 @@ class GUI {
         // Setup waveform canvas
         this.setupWaveformCanvas();
         
-        // Setup trim controls
-        this.setupTrimControls();
-        
         // Generate the pad grid
         this.generatePads();
     }
 
     /**
-     * Setup trim controls panel
-     */
-    setupTrimControls() {
-        this.trimContainer = document.getElementById('trim-container');
-        const trimTitle = document.getElementById('trim-title');
-        const trimClose = document.getElementById('trim-close');
-        const trimStart = document.getElementById('trim-start');
-        const trimEnd = document.getElementById('trim-end');
-        const trimStartValue = document.getElementById('trim-start-value');
-        const trimEndValue = document.getElementById('trim-end-value');
-        
-        // Close button
-        trimClose.addEventListener('click', () => {
-            this.closeTrimPanel();
-        });
-        
-        // Start slider
-        trimStart.addEventListener('input', (e) => {
-            if (this.selectedPadForTrim === null) return;
-            const value = parseInt(e.target.value) / 100;
-            this.audioEngine.setTrimStart(this.selectedPadForTrim, value);
-            const trimValues = this.audioEngine.getTrimValues(this.selectedPadForTrim);
-            trimStartValue.textContent = `${Math.round(trimValues.start * 100)}%`;
-            trimStart.value = trimValues.start * 100;
-        });
-        
-        // End slider
-        trimEnd.addEventListener('input', (e) => {
-            if (this.selectedPadForTrim === null) return;
-            const value = parseInt(e.target.value) / 100;
-            this.audioEngine.setTrimEnd(this.selectedPadForTrim, value);
-            const trimValues = this.audioEngine.getTrimValues(this.selectedPadForTrim);
-            trimEndValue.textContent = `${Math.round(trimValues.end * 100)}%`;
-            trimEnd.value = trimValues.end * 100;
-        });
-    }
-
-    /**
-     * Open trim panel for a specific pad
-     * @param {number} padIndex - Index of pad to trim
-     */
-    openTrimPanel(padIndex) {
-        // Only allow trim for loaded pads
-        if (!this.audioEngine.buffers[padIndex]) {
-            console.warn('Cannot trim empty pad');
-            return;
-        }
-        
-        this.selectedPadForTrim = padIndex;
-        
-        // Update title
-        document.getElementById('trim-title').textContent = `Trim: Pad ${padIndex}`;
-        
-        // Load current trim values
-        const trimValues = this.audioEngine.getTrimValues(padIndex);
-        document.getElementById('trim-start').value = trimValues.start * 100;
-        document.getElementById('trim-end').value = trimValues.end * 100;
-        document.getElementById('trim-start-value').textContent = `${Math.round(trimValues.start * 100)}%`;
-        document.getElementById('trim-end-value').textContent = `${Math.round(trimValues.end * 100)}%`;
-        
-        // Show panel
-        this.trimContainer.classList.remove('hidden');
-    }
-
-    /**
-     * Close trim panel
-     */
-    closeTrimPanel() {
-        this.selectedPadForTrim = null;
-        this.trimContainer.classList.add('hidden');
-    }
-
-    /**
-     * Setup waveform canvas for visualization
+     * Setup waveform canvas for visualization with trim handles
      */
     setupWaveformCanvas() {
         this.waveformCanvas = document.getElementById('waveform');
@@ -124,10 +50,24 @@ class GUI {
         this.resizeWaveformCanvas();
         
         // Handle window resize
-        window.addEventListener('resize', () => this.resizeWaveformCanvas());
+        window.addEventListener('resize', () => {
+            this.resizeWaveformCanvas();
+            this.drawWaveform();
+        });
         
-        // Start waveform animation loop
-        this.startWaveformAnimation();
+        // Mouse events for trim handles
+        this.waveformCanvas.addEventListener('mousedown', (e) => this.onCanvasMouseDown(e));
+        this.waveformCanvas.addEventListener('mousemove', (e) => this.onCanvasMouseMove(e));
+        this.waveformCanvas.addEventListener('mouseup', () => this.onCanvasMouseUp());
+        this.waveformCanvas.addEventListener('mouseleave', () => this.onCanvasMouseUp());
+        
+        // Touch events for mobile
+        this.waveformCanvas.addEventListener('touchstart', (e) => this.onCanvasTouchStart(e));
+        this.waveformCanvas.addEventListener('touchmove', (e) => this.onCanvasTouchMove(e));
+        this.waveformCanvas.addEventListener('touchend', () => this.onCanvasMouseUp());
+        
+        // Initial draw
+        this.drawWaveform();
     }
 
     /**
@@ -141,70 +81,261 @@ class GUI {
     }
 
     /**
-     * Start the waveform animation loop
+     * Select a pad to display its waveform
+     * @param {number} padIndex - Pad index
      */
-    startWaveformAnimation() {
-        this.isDrawingWaveform = true;
+    selectPadForWaveform(padIndex) {
+        if (!this.audioEngine.hasSound(padIndex)) {
+            return;
+        }
+        
+        this.selectedPad = padIndex;
+        document.getElementById('waveform-label').textContent = `Pad ${padIndex} - Drag handles to trim`;
         this.drawWaveform();
+        this.updateTrimDisplay();
+        
+        // Highlight selected pad
+        this.pads.forEach((pad, i) => {
+            pad.classList.toggle('selected', i === padIndex);
+        });
     }
 
     /**
-     * Draw waveform visualization
+     * Draw the waveform with trim handles
      */
     drawWaveform() {
-        if (!this.isDrawingWaveform) return;
-        
-        requestAnimationFrame(() => this.drawWaveform());
-        
         const canvas = this.waveformCanvas;
         const ctx = this.waveformCtx;
         const width = canvas.width / window.devicePixelRatio;
         const height = canvas.height / window.devicePixelRatio;
         
         // Clear canvas
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
         ctx.fillRect(0, 0, width, height);
         
-        // Get analyser data
-        const data = this.audioEngine.getAnalyserData();
-        if (!data) {
-            // Draw flat line when no audio context
-            ctx.strokeStyle = 'rgba(102, 126, 234, 0.5)';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(0, height / 2);
-            ctx.lineTo(width, height / 2);
-            ctx.stroke();
+        if (this.selectedPad === null || !this.audioEngine.hasSound(this.selectedPad)) {
+            // Draw placeholder
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Click a loaded pad to view waveform', width / 2, height / 2);
             return;
         }
         
+        const bufferData = this.audioEngine.getBufferData(this.selectedPad);
+        const trimValues = this.audioEngine.getTrimValues(this.selectedPad);
+        
+        if (!bufferData) return;
+        
+        // Calculate trim positions in pixels
+        const trimStartX = trimValues.start * width;
+        const trimEndX = trimValues.end * width;
+        
+        // Draw dimmed regions (outside trim)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(0, 0, trimStartX, height);
+        ctx.fillRect(trimEndX, 0, width - trimEndX, height);
+        
         // Draw waveform
-        ctx.strokeStyle = '#667eea';
-        ctx.lineWidth = 2;
+        const step = Math.ceil(bufferData.length / width);
+        const amp = height / 2;
+        
         ctx.beginPath();
+        ctx.moveTo(0, amp);
         
-        const sliceWidth = width / data.length;
-        let x = 0;
-        
-        for (let i = 0; i < data.length; i++) {
-            const v = data[i] / 128.0; // Normalize to 0-2
-            const y = (v * height) / 2;
+        for (let i = 0; i < width; i++) {
+            let min = 1.0;
+            let max = -1.0;
             
-            if (i === 0) {
-                ctx.moveTo(x, y);
-            } else {
-                ctx.lineTo(x, y);
+            for (let j = 0; j < step; j++) {
+                const datum = bufferData[(i * step) + j];
+                if (datum < min) min = datum;
+                if (datum > max) max = datum;
             }
             
-            x += sliceWidth;
+            // Draw the waveform as filled area
+            const x = i;
+            const isInTrimRegion = x >= trimStartX && x <= trimEndX;
+            
+            if (isInTrimRegion) {
+                ctx.fillStyle = 'rgba(102, 126, 234, 0.8)';
+            } else {
+                ctx.fillStyle = 'rgba(102, 126, 234, 0.3)';
+            }
+            
+            const yMin = (1 + min) * amp;
+            const yMax = (1 + max) * amp;
+            ctx.fillRect(x, yMin, 1, yMax - yMin || 1);
         }
         
-        ctx.lineTo(width, height / 2);
+        // Draw center line
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, amp);
+        ctx.lineTo(width, amp);
         ctx.stroke();
         
-        // Add glow effect
-        ctx.shadowColor = '#667eea';
-        ctx.shadowBlur = 10;
+        // Draw trim handles
+        this.drawTrimHandle(ctx, trimStartX, height, 'start');
+        this.drawTrimHandle(ctx, trimEndX, height, 'end');
+    }
+
+    /**
+     * Draw a trim handle
+     */
+    drawTrimHandle(ctx, x, height, type) {
+        const handleWidth = this.handleWidth;
+        const handleX = type === 'start' ? x : x - handleWidth;
+        
+        // Handle background
+        const gradient = ctx.createLinearGradient(handleX, 0, handleX + handleWidth, 0);
+        if (type === 'start') {
+            gradient.addColorStop(0, 'rgba(102, 126, 234, 0.9)');
+            gradient.addColorStop(1, 'rgba(102, 126, 234, 0.4)');
+        } else {
+            gradient.addColorStop(0, 'rgba(102, 126, 234, 0.4)');
+            gradient.addColorStop(1, 'rgba(102, 126, 234, 0.9)');
+        }
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(handleX, 0, handleWidth, height);
+        
+        // Handle line
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+        
+        // Handle grip lines
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.lineWidth = 1;
+        const centerX = type === 'start' ? x + handleWidth / 2 : x - handleWidth / 2;
+        for (let i = -2; i <= 2; i++) {
+            ctx.beginPath();
+            ctx.moveTo(centerX + i * 2, height / 2 - 10);
+            ctx.lineTo(centerX + i * 2, height / 2 + 10);
+            ctx.stroke();
+        }
+    }
+
+    /**
+     * Get mouse position relative to canvas
+     */
+    getCanvasPosition(e) {
+        const rect = this.waveformCanvas.getBoundingClientRect();
+        return {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        };
+    }
+
+    /**
+     * Check which handle is at position
+     */
+    getHandleAtPosition(x) {
+        if (this.selectedPad === null) return null;
+        
+        const width = this.waveformCanvas.getBoundingClientRect().width;
+        const trimValues = this.audioEngine.getTrimValues(this.selectedPad);
+        const trimStartX = trimValues.start * width;
+        const trimEndX = trimValues.end * width;
+        
+        if (Math.abs(x - trimStartX) < this.handleWidth) return 'start';
+        if (Math.abs(x - trimEndX) < this.handleWidth) return 'end';
+        return null;
+    }
+
+    /**
+     * Handle mouse down on canvas
+     */
+    onCanvasMouseDown(e) {
+        const pos = this.getCanvasPosition(e);
+        this.isDragging = this.getHandleAtPosition(pos.x);
+        
+        if (this.isDragging) {
+            this.waveformCanvas.style.cursor = 'ew-resize';
+        }
+    }
+
+    /**
+     * Handle mouse move on canvas
+     */
+    onCanvasMouseMove(e) {
+        const pos = this.getCanvasPosition(e);
+        
+        if (this.isDragging && this.selectedPad !== null) {
+            const width = this.waveformCanvas.getBoundingClientRect().width;
+            const value = Math.max(0, Math.min(1, pos.x / width));
+            
+            if (this.isDragging === 'start') {
+                this.audioEngine.setTrimStart(this.selectedPad, value);
+            } else {
+                this.audioEngine.setTrimEnd(this.selectedPad, value);
+            }
+            
+            this.drawWaveform();
+            this.updateTrimDisplay();
+        } else {
+            // Update cursor based on hover
+            const handle = this.getHandleAtPosition(pos.x);
+            this.waveformCanvas.style.cursor = handle ? 'ew-resize' : 'crosshair';
+        }
+    }
+
+    /**
+     * Handle mouse up on canvas
+     */
+    onCanvasMouseUp() {
+        this.isDragging = null;
+        this.waveformCanvas.style.cursor = 'crosshair';
+    }
+
+    /**
+     * Handle touch start
+     */
+    onCanvasTouchStart(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const rect = this.waveformCanvas.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        this.isDragging = this.getHandleAtPosition(x);
+    }
+
+    /**
+     * Handle touch move
+     */
+    onCanvasTouchMove(e) {
+        e.preventDefault();
+        if (!this.isDragging || this.selectedPad === null) return;
+        
+        const touch = e.touches[0];
+        const rect = this.waveformCanvas.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const width = rect.width;
+        const value = Math.max(0, Math.min(1, x / width));
+        
+        if (this.isDragging === 'start') {
+            this.audioEngine.setTrimStart(this.selectedPad, value);
+        } else {
+            this.audioEngine.setTrimEnd(this.selectedPad, value);
+        }
+        
+        this.drawWaveform();
+        this.updateTrimDisplay();
+    }
+
+    /**
+     * Update trim value display
+     */
+    updateTrimDisplay() {
+        if (this.selectedPad === null) return;
+        
+        const trimValues = this.audioEngine.getTrimValues(this.selectedPad);
+        document.getElementById('trim-start-display').textContent = `Start: ${Math.round(trimValues.start * 100)}%`;
+        document.getElementById('trim-end-display').textContent = `End: ${Math.round(trimValues.end * 100)}%`;
     }
 
     /**
@@ -235,10 +366,10 @@ class GUI {
             pad.addEventListener('mouseup', () => this.deactivatePad(i));
             pad.addEventListener('mouseleave', () => this.deactivatePad(i));
             
-            // Right-click to open trim panel
+            // Right-click to select for waveform/trim
             pad.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
-                this.openTrimPanel(i);
+                this.selectPadForWaveform(i);
             });
             
             this.padContainer.appendChild(pad);
@@ -254,6 +385,11 @@ class GUI {
         // Ensure audio context is initialized
         if (!this.audioEngine.audioContext) {
             await this.audioEngine.init();
+        }
+        
+        // Select pad for waveform display
+        if (this.audioEngine.hasSound(padIndex)) {
+            this.selectPadForWaveform(padIndex);
         }
         
         // Play the sound

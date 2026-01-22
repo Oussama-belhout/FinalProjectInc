@@ -1,0 +1,12 @@
+{
+  "id": "preset-3",
+  "name": "FX Pack",
+  "category": "FX",
+  "description": "Sound effects and percussion",
+  "sounds": [
+    { "pad": 0, "url": "https://raw.githubusercontent.com/wesbos/JavaScript30/master/01%20-%20JavaScript%20Drum%20Kit/sounds/boom.wav", "name": "Boom" },
+    { "pad": 1, "url": "https://raw.githubusercontent.com/wesbos/JavaScript30/master/01%20-%20JavaScript%20Drum%20Kit/sounds/ride.wav", "name": "Ride" },
+    { "pad": 2, "url": "https://raw.githubusercontent.com/wesbos/JavaScript30/master/01%20-%20JavaScript%20Drum%20Kit/sounds/clap.wav", "name": "Clap FX" },
+    { "pad": 3, "url": "https://raw.githubusercontent.com/wesbos/JavaScript30/master/01%20-%20JavaScript%20Drum%20Kit/sounds/tink.wav", "name": "Tink" }
+  ]
+}

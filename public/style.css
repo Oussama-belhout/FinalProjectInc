@@ -212,6 +212,12 @@ main {
     color: white;
 }
 
+/* Selected pad for waveform */
+.pad.selected {
+    border-color: #667eea;
+    box-shadow: 0 0 15px rgba(102, 126, 234, 0.4);
+}
+
 /* Waveform Visualization */
 #waveform-container {
     margin-top: 20px;
@@ -221,11 +227,33 @@ main {
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+#waveform-label {
+    text-align: center;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 10px;
+}
+
 #waveform {
     width: 100%;
-    height: 80px;
+    height: 120px;
     display: block;
     border-radius: 8px;
+    cursor: crosshair;
+}
+
+#trim-values {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+#trim-values span {
+    padding: 4px 8px;
+    background: rgba(102, 126, 234, 0.2);
+    border-radius: 4px;
 }
 
 /* Trim Controls */

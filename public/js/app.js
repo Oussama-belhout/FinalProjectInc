@@ -7,6 +7,19 @@
 let audioEngine;
 let gui;
 
+// Category emoji icons
+const CATEGORY_ICONS = {
+    'Drums': '🥁',
+    'Electronic': '🎛️',
+    'Percussion': '🪘',
+    'FX': '✨',
+    'Vocals': '🎤',
+    'Bass': '🎸',
+    'Synth': '🎹',
+    'World': '🌍',
+    'Uncategorized': '📁'
+};
+
 /**
  * Initialize the application
  */
@@ -39,14 +52,36 @@ async function setupPresetControls() {
     const loadingText = document.getElementById('loading-text');
     const progressFill = document.getElementById('progress-fill');
     
-    // Fetch and populate presets
+    // Fetch presets
     const presets = await audioEngine.fetchPresets();
     
+    // Group presets by category
+    const categories = {};
     presets.forEach(preset => {
-        const option = document.createElement('option');
-        option.value = preset.id;
-        option.textContent = `${preset.name} (${preset.soundCount} sounds)`;
-        presetSelect.appendChild(option);
+        const category = preset.category || 'Uncategorized';
+        if (!categories[category]) {
+            categories[category] = [];
+        }
+        categories[category].push(preset);
+    });
+    
+    // Sort categories alphabetically
+    const sortedCategories = Object.keys(categories).sort();
+    
+    // Populate dropdown with optgroups
+    sortedCategories.forEach(category => {
+        const icon = CATEGORY_ICONS[category] || '📁';
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = `${icon} ${category}`;
+        
+        categories[category].forEach(preset => {
+            const option = document.createElement('option');
+            option.value = preset.id;
+            option.textContent = `${preset.name} (${preset.soundCount} sounds)`;
+            optgroup.appendChild(option);
+        });
+        
+        presetSelect.appendChild(optgroup);
     });
     
     // Enable load button when preset is selected

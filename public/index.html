@@ -32,26 +32,13 @@
             
             <div id="pad-container"></div>
             
-            <!-- Waveform Visualization -->
+            <!-- Waveform Visualization with Trim -->
             <div id="waveform-container">
+                <div id="waveform-label">Select a pad to view waveform</div>
                 <canvas id="waveform"></canvas>
-            </div>
-            
-            <!-- Trim Controls -->
-            <div id="trim-container" class="hidden">
-                <div id="trim-header">
-                    <span id="trim-title">Trim: Pad 0</span>
-                    <button id="trim-close">✕</button>
-                </div>
-                <div class="trim-control">
-                    <label>Start</label>
-                    <input type="range" id="trim-start" min="0" max="100" value="0">
-                    <span id="trim-start-value">0%</span>
-                </div>
-                <div class="trim-control">
-                    <label>End</label>
-                    <input type="range" id="trim-end" min="0" max="100" value="100">
-                    <span id="trim-end-value">100%</span>
+                <div id="trim-values">
+                    <span id="trim-start-display">Start: 0%</span>
+                    <span id="trim-end-display">End: 100%</span>
                 </div>
             </div>
             

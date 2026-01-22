@@ -1,15 +1,16 @@
 {
   "id": "preset-1",
   "name": "Classic Drums",
+  "category": "Drums",
   "description": "Classic acoustic drum kit",
   "sounds": [
-    { "pad": 0, "url": "https://cdn.freesound.org/previews/171/171104_2394245-lq.mp3", "name": "Kick" },
-    { "pad": 1, "url": "https://cdn.freesound.org/previews/387/387186_7255534-lq.mp3", "name": "Snare" },
-    { "pad": 2, "url": "https://cdn.freesound.org/previews/100/100393_1101104-lq.mp3", "name": "Hi-Hat" },
-    { "pad": 3, "url": "https://cdn.freesound.org/previews/183/183103_2394245-lq.mp3", "name": "Clap" },
-    { "pad": 4, "url": "https://cdn.freesound.org/previews/209/209879_3797507-lq.mp3", "name": "Tom High" },
-    { "pad": 5, "url": "https://cdn.freesound.org/previews/209/209878_3797507-lq.mp3", "name": "Tom Mid" },
-    { "pad": 6, "url": "https://cdn.freesound.org/previews/209/209877_3797507-lq.mp3", "name": "Tom Low" },
-    { "pad": 7, "url": "https://cdn.freesound.org/previews/250/250547_4486188-lq.mp3", "name": "Crash" }
+    { "pad": 0, "url": "https://raw.githubusercontent.com/wesbos/JavaScript30/master/01%20-%20JavaScript%20Drum%20Kit/sounds/kick.wav", "name": "Kick" },
+    { "pad": 1, "url": "https://raw.githubusercontent.com/wesbos/JavaScript30/master/01%20-%20JavaScript%20Drum%20Kit/sounds/snare.wav", "name": "Snare" },
+    { "pad": 2, "url": "https://raw.githubusercontent.com/wesbos/JavaScript30/master/01%20-%20JavaScript%20Drum%20Kit/sounds/hihat.wav", "name": "Hi-Hat" },
+    { "pad": 3, "url": "https://raw.githubusercontent.com/wesbos/JavaScript30/master/01%20-%20JavaScript%20Drum%20Kit/sounds/clap.wav", "name": "Clap" },
+    { "pad": 4, "url": "https://raw.githubusercontent.com/wesbos/JavaScript30/master/01%20-%20JavaScript%20Drum%20Kit/sounds/tom.wav", "name": "Tom" },
+    { "pad": 5, "url": "https://raw.githubusercontent.com/wesbos/JavaScript30/master/01%20-%20JavaScript%20Drum%20Kit/sounds/boom.wav", "name": "Boom" },
+    { "pad": 6, "url": "https://raw.githubusercontent.com/wesbos/JavaScript30/master/01%20-%20JavaScript%20Drum%20Kit/sounds/ride.wav", "name": "Ride" },
+    { "pad": 7, "url": "https://raw.githubusercontent.com/wesbos/JavaScript30/master/01%20-%20JavaScript%20Drum%20Kit/sounds/openhat.wav", "name": "Open Hat" }
   ]
 }
