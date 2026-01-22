@@ -1,6 +1,7 @@
 /**
  * Application Entry Point
  * Initializes AudioEngine and GUI
+ * This is the sampler application - read-only preset consumer
  */
 
 // Global instances
@@ -17,6 +18,7 @@ const CATEGORY_ICONS = {
     'Bass': '🎸',
     'Synth': '🎹',
     'World': '🌍',
+    'Custom': '⚙️',
     'Uncategorized': '📁'
 };
 
@@ -52,7 +54,7 @@ async function setupPresetControls() {
     const loadingText = document.getElementById('loading-text');
     const progressFill = document.getElementById('progress-fill');
     
-    // Fetch presets
+    // Fetch presets from API
     const presets = await audioEngine.fetchPresets();
     
     // Group presets by category

@@ -99,6 +99,84 @@ app.get('/api/presets/:id', (req, res) => {
     }
 });
 
+// POST /api/presets - Create new preset
+app.post('/api/presets', (req, res) => {
+    const presetsDir = path.join(__dirname, 'presets');
+    
+    try {
+        const preset = req.body;
+        
+        // Validate required fields
+        if (!preset.name) {
+            return res.status(400).json({ error: 'Preset name is required' });
+        }
+        
+        // Generate unique ID if not provided
+        if (!preset.id) {
+            const files = fs.readdirSync(presetsDir).filter(f => f.endsWith('.json'));
+            const existingIds = files.map(f => parseInt(f.replace('preset-', '').replace('.json', '')));
+            const maxId = existingIds.length > 0 ? Math.max(...existingIds) : 0;
+            preset.id = `preset-${maxId + 1}`;
+        }
+        
+        // Set defaults
+        preset.category = preset.category || 'Custom';
+        preset.sounds = preset.sounds || [];
+        
+        const presetPath = path.join(presetsDir, `${preset.id}.json`);
+        
+        // Check if preset already exists
+        if (fs.existsSync(presetPath)) {
+            return res.status(409).json({ error: 'Preset ID already exists' });
+        }
+        
+        fs.writeFileSync(presetPath, JSON.stringify(preset, null, 2));
+        res.status(201).json(preset);
+    } catch (error) {
+        console.error('Error creating preset:', error);
+        res.status(500).json({ error: 'Failed to create preset' });
+    }
+});
+
+// PUT /api/presets/:id - Update preset
+app.put('/api/presets/:id', (req, res) => {
+    const presetId = req.params.id;
+    const presetPath = path.join(__dirname, 'presets', `${presetId}.json`);
+    
+    try {
+        if (!fs.existsSync(presetPath)) {
+            return res.status(404).json({ error: 'Preset not found' });
+        }
+        
+        const preset = req.body;
+        preset.id = presetId; // Ensure ID matches path
+        
+        fs.writeFileSync(presetPath, JSON.stringify(preset, null, 2));
+        res.json(preset);
+    } catch (error) {
+        console.error('Error updating preset:', error);
+        res.status(500).json({ error: 'Failed to update preset' });
+    }
+});
+
+// DELETE /api/presets/:id - Delete preset
+app.delete('/api/presets/:id', (req, res) => {
+    const presetId = req.params.id;
+    const presetPath = path.join(__dirname, 'presets', `${presetId}.json`);
+    
+    try {
+        if (!fs.existsSync(presetPath)) {
+            return res.status(404).json({ error: 'Preset not found' });
+        }
+        
+        fs.unlinkSync(presetPath);
+        res.json({ message: 'Preset deleted successfully', id: presetId });
+    } catch (error) {
+        console.error('Error deleting preset:', error);
+        res.status(500).json({ error: 'Failed to delete preset' });
+    }
+});
+
 // ============ END API ROUTES ============
 
 // Server start

@@ -1,0 +1,58 @@
+<div class="preset-list-container">
+  <header class="header">
+    <h1>🎹 Preset Manager</h1>
+    <p class="subtitle">Manage your sampler presets</p>
+  </header>
+
+  <!-- Loading State -->
+  @if (loading) {
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Loading presets...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error) {
+    <div class="error">
+      <p>{{ error }}</p>
+      <button (click)="loadPresets()">Retry</button>
+    </div>
+  }
+
+  <!-- Preset List -->
+  @if (!loading && !error) {
+    <div class="preset-categories">
+      @for (category of categories; track category) {
+        <div class="category-group">
+          <h2 class="category-title">
+            <span class="icon">{{ getCategoryIcon(category) }}</span>
+            {{ category }}
+          </h2>
+          <div class="preset-grid">
+            @for (preset of groupedPresets[category]; track preset.id) {
+              <div class="preset-card">
+                <a [routerLink]="['/presets', preset.id]" class="preset-link">
+                  <h3 class="preset-name">{{ preset.name }}</h3>
+                  <p class="preset-info">{{ preset.soundCount }} sounds</p>
+                </a>
+                <button 
+                  class="delete-btn" 
+                  (click)="deletePreset(preset, $event)"
+                  title="Delete preset">
+                  🗑️
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (presets.length === 0) {
+      <div class="empty-state">
+        <p>No presets found. Create one using the sampler!</p>
+      </div>
+    }
+  }
+</div>

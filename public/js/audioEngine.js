@@ -11,6 +11,9 @@ class AudioEngine {
         // Buffer storage for 16 pads
         this.buffers = new Array(16).fill(null);
         
+        // URL storage for saving presets
+        this.soundUrls = new Array(16).fill(null);
+        
         // Trim values for each pad (0-1 range)
         this.trimStart = new Array(16).fill(0);
         this.trimEnd = new Array(16).fill(1);
@@ -85,6 +88,9 @@ class AudioEngine {
             
             // Store in buffers array
             this.buffers[padIndex] = audioBuffer;
+            
+            // Store original URL for preset saving
+            this.soundUrls[padIndex] = url;
             
             console.log(`✅ Sound loaded for pad ${padIndex}`);
             return true;
@@ -177,8 +183,9 @@ class AudioEngine {
             }
             const preset = await response.json();
             
-            // Clear existing buffers
+            // Clear existing buffers and URLs
             this.buffers = new Array(16).fill(null);
+            this.soundUrls = new Array(16).fill(null);
             
             const totalSounds = preset.sounds.length;
             let loadedSounds = 0;

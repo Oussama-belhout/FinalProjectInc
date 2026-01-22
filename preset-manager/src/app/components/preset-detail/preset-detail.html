@@ -1,0 +1,101 @@
+<div class="preset-detail-container">
+  <a routerLink="/presets" class="back-link">← Back to Presets</a>
+
+  <!-- Loading State -->
+  @if (loading) {
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Loading preset...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error) {
+    <div class="error">
+      <p>{{ error }}</p>
+      <a routerLink="/presets">Go back</a>
+    </div>
+  }
+
+  <!-- Preset Details -->
+  @if (!loading && !error && preset) {
+    <div class="preset-card">
+      <div class="preset-header">
+        @if (!isEditing) {
+          <div class="header-info">
+            <h1>{{ preset.name }}</h1>
+            <span class="category-badge">{{ preset.category }}</span>
+          </div>
+          <div class="header-actions">
+            <button class="edit-btn" (click)="startEditing()">✏️ Rename</button>
+            <button class="delete-btn" (click)="deletePreset()">🗑️ Delete</button>
+          </div>
+        } @else {
+          <div class="edit-form">
+            <div class="form-group">
+              <label for="name">Name</label>
+              <input 
+                type="text" 
+                id="name" 
+                [(ngModel)]="editName" 
+                placeholder="Preset name"
+                autofocus>
+            </div>
+            <div class="form-group">
+              <label for="category">Category</label>
+              <input 
+                type="text" 
+                id="category" 
+                [(ngModel)]="editCategory" 
+                placeholder="Category (e.g., Drums, Electronic)">
+            </div>
+            <div class="form-actions">
+              <button 
+                class="save-btn" 
+                (click)="saveChanges()" 
+                [disabled]="saving || !editName.trim()">
+                {{ saving ? 'Saving...' : '💾 Save' }}
+              </button>
+              <button class="cancel-btn" (click)="cancelEditing()" [disabled]="saving">
+                Cancel
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="sounds-section">
+        <h2>🎵 Sounds ({{ preset.sounds.length }})</h2>
+        
+        @if (preset.sounds.length > 0) {
+          <div class="sounds-grid">
+            @for (sound of preset.sounds; track sound.pad; let i = $index) {
+              <div class="sound-item">
+                <div class="sound-actions">
+                  <button 
+                    class="play-btn" 
+                    (click)="playSound(sound.url)" 
+                    [disabled]="playingIndex === i"
+                    title="Play sound">
+                    {{ playingIndex === i ? '⏹️' : '▶️' }}
+                  </button>
+                  <button 
+                    class="delete-sound-btn" 
+                    (click)="deleteSound(i)"
+                    title="Delete sound">
+                    🗑️
+                  </button>
+                </div>
+                <span class="pad-number">Pad {{ sound.pad }}</span>
+                <span class="sound-name">{{ sound.name || 'Unnamed' }}</span>
+                <span class="sound-url" title="{{ sound.url }}">{{ sound.url | slice:0:40 }}...</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="no-sounds">No sounds in this preset</p>
+        }
+      </div>
+    </div>
+  }
+</div>
