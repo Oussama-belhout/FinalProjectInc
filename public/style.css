@@ -172,6 +172,32 @@ main {
     pointer-events: none;
 }
 
+/* Keyboard key label */
+.pad-key {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.25);
+    background: rgba(0, 0, 0, 0.2);
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    pointer-events: none;
+    text-transform: uppercase;
+}
+
+.pad.loaded .pad-key {
+    color: rgba(255, 255, 255, 0.4);
+    background: rgba(102, 126, 234, 0.2);
+}
+
+.pad.active .pad-key {
+    color: white;
+    background: rgba(255, 255, 255, 0.2);
+}
+
 /* Empty pad state */
 .pad.empty {
     opacity: 0.6;

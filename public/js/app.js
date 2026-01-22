@@ -104,6 +104,9 @@ async function setupPresetControls() {
             gui.updatePadState(i, false);
         }
         
+        // Clear waveform display
+        gui.clearWaveform();
+        
         // Show loading progress
         loadingContainer.classList.remove('hidden');
         progressFill.style.width = '0%';

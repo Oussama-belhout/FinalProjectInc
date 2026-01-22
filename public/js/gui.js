@@ -23,6 +23,24 @@ class GUI {
         // Trim handle dragging state
         this.isDragging = null; // 'start', 'end', or null
         this.handleWidth = 12;
+        
+        // Keyboard mapping (key -> pad index)
+        // Layout matches AZERTY keyboard rows
+        this.keyboardMapping = {
+            'a': 0,  'z': 1,  'e': 2,  'r': 3,   // First row (pads 0-3) - AZERTY first letter row
+            'q': 4,  's': 5,  'd': 6,  'f': 7,   // Second row (pads 4-7) - AZERTY second letter row
+            'w': 8,  'x': 9,  'c': 10, 'v': 11,  // Third row (pads 8-11) - AZERTY third letter row
+            'u': 12, 'i': 13, 'o': 14, 'p': 15   // Fourth row (pads 12-15)
+        };
+        
+        // Reverse mapping (pad index -> key)
+        this.padToKey = {};
+        for (const [key, pad] of Object.entries(this.keyboardMapping)) {
+            this.padToKey[pad] = key.toUpperCase();
+        }
+        
+        // Track pressed keys to prevent repeat
+        this.pressedKeys = new Set();
     }
 
     /**
@@ -37,6 +55,66 @@ class GUI {
         
         // Generate the pad grid
         this.generatePads();
+        
+        // Setup keyboard controls
+        this.setupKeyboardControls();
+    }
+
+    /**
+     * Setup keyboard event listeners
+     */
+    setupKeyboardControls() {
+        document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+        document.addEventListener('keyup', (e) => this.handleKeyUp(e));
+    }
+
+    /**
+     * Handle keydown event
+     * @param {KeyboardEvent} e 
+     */
+    async handleKeyDown(e) {
+        // Ignore if typing in an input
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
+            return;
+        }
+        
+        const key = e.key.toLowerCase();
+        
+        // Check if key is mapped and not already pressed (prevent repeat)
+        if (this.keyboardMapping.hasOwnProperty(key) && !this.pressedKeys.has(key)) {
+            e.preventDefault();
+            this.pressedKeys.add(key);
+            
+            const padIndex = this.keyboardMapping[key];
+            
+            // Initialize audio context if needed
+            if (!this.audioEngine.audioContext) {
+                await this.audioEngine.init();
+            }
+            
+            // Visual feedback
+            this.activatePad(padIndex);
+            
+            // Play sound and show waveform
+            if (this.audioEngine.hasSound(padIndex)) {
+                this.selectPadForWaveform(padIndex);
+            }
+            this.audioEngine.playSound(padIndex);
+        }
+    }
+
+    /**
+     * Handle keyup event
+     * @param {KeyboardEvent} e 
+     */
+    handleKeyUp(e) {
+        const key = e.key.toLowerCase();
+        
+        if (this.keyboardMapping.hasOwnProperty(key)) {
+            this.pressedKeys.delete(key);
+            const padIndex = this.keyboardMapping[key];
+            this.deactivatePad(padIndex);
+        }
     }
 
     /**
@@ -89,6 +167,16 @@ class GUI {
             return;
         }
         
+        // First, clear the canvas completely
+        const canvas = this.waveformCanvas;
+        const ctx = this.waveformCtx;
+        const width = canvas.width / window.devicePixelRatio;
+        const height = canvas.height / window.devicePixelRatio;
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.fillRect(0, 0, width, height);
+        
+        // Now set the new pad and draw
         this.selectedPad = padIndex;
         document.getElementById('waveform-label').textContent = `Pad ${padIndex} - Drag handles to trim`;
         this.drawWaveform();
@@ -98,6 +186,30 @@ class GUI {
         this.pads.forEach((pad, i) => {
             pad.classList.toggle('selected', i === padIndex);
         });
+    }
+
+    /**
+     * Clear waveform display (reset to placeholder)
+     */
+    clearWaveform() {
+        this.selectedPad = null;
+        document.getElementById('waveform-label').textContent = 'Select a pad to view waveform';
+        document.getElementById('trim-start-display').textContent = 'Start: 0%';
+        document.getElementById('trim-end-display').textContent = 'End: 100%';
+        
+        // Remove selected state from all pads
+        this.pads.forEach(pad => {
+            pad.classList.remove('selected');
+        });
+        
+        // Clear the canvas completely
+        const canvas = this.waveformCanvas;
+        const ctx = this.waveformCtx;
+        const width = canvas.width / window.devicePixelRatio;
+        const height = canvas.height / window.devicePixelRatio;
+        ctx.clearRect(0, 0, width, height);
+        
+        this.drawWaveform();
     }
 
     /**
@@ -357,6 +469,12 @@ class GUI {
             label.className = 'pad-label';
             label.textContent = i;
             pad.appendChild(label);
+            
+            // Keyboard key label
+            const keyLabel = document.createElement('span');
+            keyLabel.className = 'pad-key';
+            keyLabel.textContent = this.padToKey[i] || '';
+            pad.appendChild(keyLabel);
             
             // Click event
             pad.addEventListener('click', () => this.handlePadClick(i));
