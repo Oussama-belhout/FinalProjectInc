@@ -1,0 +1,80 @@
+<div class="create-container">
+    <header class="page-header">
+        <h1>{{ isEditMode ? 'Edit Preset' : 'Create New Preset' }}</h1>
+        <a routerLink="/" class="back-btn">← Back to List</a>
+    </header>
+
+    <div *ngIf="error" class="error-message">
+        {{ error }}
+    </div>
+
+    <form (ngSubmit)="onSubmit()" class="preset-form">
+        <div class="form-group">
+            <label for="name">Preset Name *</label>
+            <input type="text" id="name" [(ngModel)]="preset.name" name="name" required
+                placeholder="e.g. My Awesome Kit" [class.invalid]="!preset.name && error">
+        </div>
+
+        <div class="form-group">
+            <label for="category">Category</label>
+            <select id="category" [(ngModel)]="preset.category" name="category">
+                <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" [(ngModel)]="preset.description" name="description" rows="4"
+                placeholder="Describe your preset..."></textarea>
+        </div>
+
+        <div class="sounds-section">
+            <h3>Sounds</h3>
+
+            <div class="sound-list">
+                <div *ngFor="let sound of preset.sounds; let i = index" class="sound-item">
+                    <div class="sound-info">
+                        <span class="pad-badge">Pad {{ sound.pad }}</span>
+                        <span class="sound-name">{{ sound.name }}</span>
+                        <span class="sound-url">{{ sound.url }}</span>
+                    </div>
+                    <button type="button" class="remove-sound-btn" (click)="removeSound(i)"
+                        title="Remove sound">🗑️</button>
+                </div>
+
+                <div *ngIf="!preset.sounds || preset.sounds.length === 0" class="no-sounds">
+                    No sounds added yet.
+                </div>
+            </div>
+
+            <div class="add-sound-form">
+                <h4>Add New Sound</h4>
+                <div class="add-sound-grid">
+                    <div class="form-group">
+                        <label>Pad (0-15)</label>
+                        <input type="number" [(ngModel)]="newSound.pad" name="newPad" min="0" max="15">
+                    </div>
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" [(ngModel)]="newSound.name" name="newName" placeholder="Kick">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>URL</label>
+                        <input type="text" [(ngModel)]="newSound.url" name="newUrl" placeholder="https://...">
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button type="button" class="add-btn" (click)="addSound()">Add Sound</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="button" routerLink="/" class="cancel-btn">Cancel</button>
+            <button type="submit" class="submit-btn" [disabled]="isLoading">
+                {{ isLoading ? 'Saving...' : (isEditMode ? 'Update Preset' : 'Create Preset') }}
+            </button>
+        </div>
+    </form>
+</div>

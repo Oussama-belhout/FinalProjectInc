@@ -42,6 +42,12 @@ async function initApp() {
     // Setup preset controls
     await setupPresetControls();
 
+    // Setup recording controls
+    setupRecordingControls();
+
+    // Setup upload controls
+    setupUploadControls();
+
     // Hide test button since we have presets now
     document.getElementById('test-section').style.display = 'none';
 
@@ -143,6 +149,114 @@ async function setupPresetControls() {
         // Re-enable controls
         loadBtn.disabled = false;
         presetSelect.disabled = false;
+    });
+}
+
+/**
+ * Setup recording controls
+ */
+function setupRecordingControls() {
+    const recordBtn = document.getElementById('record-btn');
+    const padSelect = document.getElementById('record-pad-select');
+    const status = document.getElementById('record-status');
+    let isRecording = false;
+
+    if (!recordBtn) return;
+
+    recordBtn.addEventListener('click', async () => {
+        // Initialize audio context if needed
+        if (!audioEngine.audioContext) {
+            await audioEngine.init();
+        }
+
+        // Request mic permission if not already done
+        if (!audioEngine.mediaRecorder) {
+            const success = await audioEngine.initRecording();
+            if (!success) {
+                alert('Microphone access denied. Cannot record.');
+                return;
+            }
+        }
+
+        if (!isRecording) {
+            // Start Recording
+            if (audioEngine.startRecording()) {
+                isRecording = true;
+                recordBtn.textContent = '⏹️ Stop';
+                recordBtn.classList.add('recording');
+                status.classList.remove('hidden');
+                padSelect.disabled = true;
+            }
+        } else {
+            // Stop Recording
+            const buffer = await audioEngine.stopRecording();
+            if (buffer) {
+                const padIndex = parseInt(padSelect.value);
+                audioEngine.loadBuffer(buffer, padIndex);
+                gui.updatePadState(padIndex, true);
+                console.log(`✅ Recorded sound assigned to Pad ${padIndex}`);
+            }
+
+            isRecording = false;
+            recordBtn.textContent = '🔴 Record';
+            recordBtn.classList.remove('recording');
+            status.classList.add('hidden');
+            padSelect.disabled = false;
+        }
+    });
+}
+
+/**
+ * Setup upload controls
+ */
+function setupUploadControls() {
+    console.log('🔧 Setting up upload controls...');
+    const uploadBtn = document.getElementById('upload-btn');
+    const fileInput = document.getElementById('upload-file-input');
+    const padSelect = document.getElementById('upload-pad-select');
+
+    console.log('Upload elements:', { uploadBtn, fileInput, padSelect });
+
+    if (!uploadBtn || !fileInput) {
+        console.error('❌ Upload controls not found!');
+        return;
+    }
+
+    console.log('✅ Upload controls found, adding event listeners...');
+
+    // Trigger file input when button is clicked
+    uploadBtn.addEventListener('click', () => {
+        console.log('📂 Upload button clicked!');
+        fileInput.click();
+    });
+
+    // Handle file selection
+    fileInput.addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Initialize audio context if needed
+        if (!audioEngine.audioContext) {
+            await audioEngine.init();
+        }
+
+        const padIndex = parseInt(padSelect.value);
+
+        // Create a local URL for the file
+        const objectUrl = URL.createObjectURL(file);
+
+        // Load sound into engine
+        const success = await audioEngine.loadSound(objectUrl, padIndex);
+
+        if (success) {
+            gui.updatePadState(padIndex, true);
+            console.log(`✅ Uploaded file "${file.name}" assigned to Pad ${padIndex}`);
+        } else {
+            alert('Failed to load audio file.');
+        }
+
+        // Reset input
+        fileInput.value = '';
     });
 }
 

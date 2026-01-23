@@ -7,17 +7,17 @@ class AudioEngine {
     constructor() {
         // Audio context will be initialized on user interaction
         this.audioContext = null;
-        
+
         // Buffer storage for 16 pads
         this.buffers = new Array(16).fill(null);
-        
+
         // URL storage for saving presets
         this.soundUrls = new Array(16).fill(null);
-        
+
         // Trim values for each pad (0-1 range)
         this.trimStart = new Array(16).fill(0);
         this.trimEnd = new Array(16).fill(1);
-        
+
         // Analyser node for visualization
         this.analyser = null;
         this.analyserData = null;
@@ -31,21 +31,21 @@ class AudioEngine {
         try {
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             console.log('🔊 AudioContext initialized, state:', this.audioContext.state);
-            
+
             // Resume context if suspended (browser autoplay policy)
             if (this.audioContext.state === 'suspended') {
                 await this.audioContext.resume();
             }
-            
+
             // Create analyser node for visualization
             this.analyser = this.audioContext.createAnalyser();
             this.analyser.fftSize = 2048;
             this.analyser.smoothingTimeConstant = 0.8;
             this.analyserData = new Uint8Array(this.analyser.frequencyBinCount);
-            
+
             // Connect analyser to destination
             this.analyser.connect(this.audioContext.destination);
-            
+
             return true;
         } catch (error) {
             console.error('❌ Failed to initialize AudioContext:', error);
@@ -67,31 +67,31 @@ class AudioEngine {
 
         try {
             console.log(`📥 Loading sound for pad ${padIndex}: ${url}`);
-            
+
             // Use proxy for external URLs to bypass CORS
             let fetchUrl = url;
             if (url.startsWith('http://') || url.startsWith('https://')) {
                 fetchUrl = `/api/proxy-audio?url=${encodeURIComponent(url)}`;
             }
-            
+
             // Fetch the audio file
             const response = await fetch(fetchUrl);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             // Get array buffer from response
             const arrayBuffer = await response.arrayBuffer();
-            
+
             // Decode the audio data
             const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-            
+
             // Store in buffers array
             this.buffers[padIndex] = audioBuffer;
-            
+
             // Store original URL for preset saving
             this.soundUrls[padIndex] = url;
-            
+
             console.log(`✅ Sound loaded for pad ${padIndex}`);
             return true;
         } catch (error) {
@@ -121,23 +121,23 @@ class AudioEngine {
             // Create a buffer source node
             const source = this.audioContext.createBufferSource();
             source.buffer = buffer;
-            
+
             // Connect through analyser for visualization
             if (this.analyser) {
                 source.connect(this.analyser);
             } else {
                 source.connect(this.audioContext.destination);
             }
-            
+
             // Calculate trim offsets
             const duration = buffer.duration;
             const startTime = this.trimStart[padIndex] * duration;
             const endTime = this.trimEnd[padIndex] * duration;
             const playDuration = endTime - startTime;
-            
+
             // Play with trim applied
             source.start(0, startTime, playDuration);
-            
+
             console.log(`▶️ Playing pad ${padIndex} (${startTime.toFixed(2)}s - ${endTime.toFixed(2)}s)`);
             return true;
         } catch (error) {
@@ -175,40 +175,40 @@ class AudioEngine {
     async loadPreset(presetId, onPadLoaded = null, onProgress = null) {
         try {
             console.log(`📦 Loading preset: ${presetId}`);
-            
+
             // Fetch preset data
             const response = await fetch(`/api/presets/${presetId}`);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const preset = await response.json();
-            
+
             // Clear existing buffers and URLs
             this.buffers = new Array(16).fill(null);
             this.soundUrls = new Array(16).fill(null);
-            
+
             const totalSounds = preset.sounds.length;
             let loadedSounds = 0;
-            
+
             // Initial progress callback
             if (onProgress) {
                 onProgress(0, totalSounds);
             }
-            
+
             // Load each sound
             for (const sound of preset.sounds) {
                 const success = await this.loadSound(sound.url, sound.pad);
                 loadedSounds++;
-                
+
                 if (onPadLoaded) {
                     onPadLoaded(sound.pad, success);
                 }
-                
+
                 if (onProgress) {
                     onProgress(loadedSounds, totalSounds);
                 }
             }
-            
+
             console.log(`✅ Preset "${preset.name}" loaded!`);
             return true;
         } catch (error) {
@@ -329,6 +329,76 @@ class AudioEngine {
     }
 
     /**
+     * Initialize recording (request microphone access)
+     * @returns {Promise<boolean>}
+     */
+    async initRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.mediaRecorder = new MediaRecorder(stream);
+            this.audioChunks = [];
+
+            this.mediaRecorder.ondataavailable = (event) => {
+                this.audioChunks.push(event.data);
+            };
+
+            console.log('🎤 Microphone access granted');
+            return true;
+        } catch (error) {
+            console.error('❌ Microphone access denied:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Start recording
+     */
+    startRecording() {
+        if (!this.mediaRecorder) return false;
+        this.audioChunks = [];
+        this.mediaRecorder.start();
+        console.log('🔴 Recording started');
+        return true;
+    }
+
+    /**
+     * Stop recording and return the audio buffer
+     * @returns {Promise<AudioBuffer|null>}
+     */
+    stopRecording() {
+        return new Promise((resolve) => {
+            if (!this.mediaRecorder || this.mediaRecorder.state === 'inactive') {
+                resolve(null);
+                return;
+            }
+
+            this.mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+                const arrayBuffer = await audioBlob.arrayBuffer();
+                const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+                console.log('⏹️ Recording stopped, buffer created');
+                resolve(audioBuffer);
+            };
+
+            this.mediaRecorder.stop();
+        });
+    }
+
+    /**
+     * Load a raw AudioBuffer into a pad
+     * @param {AudioBuffer} buffer 
+     * @param {number} padIndex 
+     */
+    loadBuffer(buffer, padIndex) {
+        if (padIndex < 0 || padIndex > 15) return false;
+        this.buffers[padIndex] = buffer;
+        this.soundUrls[padIndex] = 'recorded-audio'; // Placeholder
+        this.trimStart[padIndex] = 0;
+        this.trimEnd[padIndex] = 1;
+        return true;
+    }
+
+    /**
      * Run headless test - proves the engine works without any GUI
      * @param {string} testPresetId - Optional preset ID to load for testing
      * @returns {Promise<Object>} - Test results
@@ -337,7 +407,7 @@ class AudioEngine {
         console.log('🧪 ═══════════════════════════════════════════');
         console.log('🧪 HEADLESS AUDIO ENGINE TEST');
         console.log('🧪 ═══════════════════════════════════════════');
-        
+
         const results = {
             timestamp: new Date().toISOString(),
             tests: [],
