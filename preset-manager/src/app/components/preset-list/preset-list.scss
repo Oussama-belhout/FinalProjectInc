@@ -2,43 +2,56 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  position: relative;
+  z-index: 1;
 }
 
 .header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
 
   h1 {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    background: linear-gradient(135deg, #fff 0%, #667eea 50%, #f093fb 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    letter-spacing: 2px;
+    animation: titleGlow 3s ease-in-out infinite alternate;
   }
 
   .subtitle {
-    color: #888;
-    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.15rem;
+    font-weight: 400;
   }
+}
+
+@keyframes titleGlow {
+  from { filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.3)); }
+  to { filter: drop-shadow(0 0 30px rgba(240, 147, 251, 0.4)); }
 }
 
 .loading, .error, .empty-state {
   text-align: center;
-  padding: 3rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
+  padding: 4rem 2rem;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
   margin: 2rem 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .spinner {
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   border: 4px solid rgba(102, 126, 234, 0.2);
   border-top-color: #667eea;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
+  margin: 0 auto 1.5rem;
 }
 
 @keyframes spin {
@@ -48,97 +61,166 @@
 .error {
   background: rgba(235, 51, 73, 0.1);
   border: 1px solid rgba(235, 51, 73, 0.3);
-  color: #eb3349;
+  color: #ff6b7a;
 
   button {
-    margin-top: 1rem;
-    padding: 0.5rem 1.5rem;
-    background: #eb3349;
+    margin-top: 1.5rem;
+    padding: 0.75rem 2rem;
+    background: linear-gradient(135deg, #eb3349, #f45c43);
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: 10px;
     cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
     
     &:hover {
-      background: #d42a3e;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(235, 51, 73, 0.4);
     }
   }
 }
 
 .category-group {
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
+  animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .category-title {
-  font-size: 1.3rem;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(90deg, rgba(102, 126, 234, 0.5), rgba(240, 147, 251, 0.3), transparent) 1;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  color: rgba(255, 255, 255, 0.9);
 
   .icon {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
   }
 }
 
 .preset-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
 }
 
 .preset-card {
   position: relative;
-  background: linear-gradient(145deg, #2a2a4a, #1e1e38);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(145deg, rgba(50, 50, 90, 0.6), rgba(30, 30, 60, 0.6));
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   overflow: hidden;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    padding: 1px;
+    background: linear-gradient(135deg, transparent, rgba(102, 126, 234, 0.3), transparent);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 
+      0 20px 40px rgba(0, 0, 0, 0.3),
+      0 0 40px rgba(102, 126, 234, 0.2);
     border-color: rgba(102, 126, 234, 0.4);
+    
+    &::before {
+      opacity: 1;
+    }
   }
 }
 
 .preset-link {
   display: block;
-  padding: 1.5rem;
+  padding: 1.75rem;
   text-decoration: none;
   color: inherit;
 }
 
 .preset-name {
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
   color: white;
+  transition: color 0.2s ease;
+  
+  .preset-card:hover & {
+    color: #f093fb;
+  }
 }
 
 .preset-info {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  
+  &::before {
+    content: '🎵';
+    font-size: 0.9rem;
+  }
 }
 
 .delete-btn {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  background: rgba(235, 51, 73, 0.2);
-  border: none;
-  border-radius: 6px;
-  padding: 0.4rem 0.6rem;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(235, 51, 73, 0.15);
+  border: 1px solid rgba(235, 51, 73, 0.3);
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.2s, background 0.2s;
+  transform: translateY(-5px);
+  transition: all 0.3s ease;
+  font-size: 1rem;
 
   .preset-card:hover & {
     opacity: 1;
+    transform: translateY(0);
   }
 
   &:hover {
-    background: rgba(235, 51, 73, 0.5);
+    background: rgba(235, 51, 73, 0.4);
+    border-color: rgba(235, 51, 73, 0.6);
+    transform: scale(1.1);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .preset-list-container {
+    padding: 1.5rem;
+  }
+  
+  .header h1 {
+    font-size: 2.2rem;
+  }
+  
+  .preset-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
   }
 }

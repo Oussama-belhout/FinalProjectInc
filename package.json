@@ -8,10 +8,16 @@
     "dev": "node server.js"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.18.2",
-    "cors": "^2.8.5"
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^9.0.1"
   },
-  "keywords": ["sampler", "audio", "web-audio-api"],
+  "keywords": [
+    "sampler",
+    "audio",
+    "web-audio-api"
+  ],
   "author": "",
   "license": "ISC"
 }

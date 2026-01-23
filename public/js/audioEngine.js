@@ -280,4 +280,222 @@ class AudioEngine {
     hasSound(padIndex) {
         return this.buffers[padIndex] !== null;
     }
+
+    /**
+     * Get the sound URL for a pad
+     * @param {number} padIndex - Pad index (0-15)
+     * @returns {string|null}
+     */
+    getSoundUrl(padIndex) {
+        return this.soundUrls[padIndex];
+    }
+
+    /**
+     * Get buffer duration for a pad
+     * @param {number} padIndex - Pad index (0-15)
+     * @returns {number} - Duration in seconds, or 0 if no buffer
+     */
+    getBufferDuration(padIndex) {
+        const buffer = this.buffers[padIndex];
+        return buffer ? buffer.duration : 0;
+    }
+
+    /**
+     * Get audio context state
+     * @returns {string} - State: 'running', 'suspended', 'closed', or 'uninitialized'
+     */
+    getState() {
+        return this.audioContext ? this.audioContext.state : 'uninitialized';
+    }
+
+    /**
+     * Get engine status for debugging
+     * @returns {Object} - Engine status information
+     */
+    getStatus() {
+        return {
+            initialized: this.audioContext !== null,
+            state: this.getState(),
+            loadedPads: this.buffers.filter(b => b !== null).length,
+            pads: this.buffers.map((buffer, index) => ({
+                index,
+                loaded: buffer !== null,
+                duration: buffer ? buffer.duration.toFixed(2) + 's' : null,
+                url: this.soundUrls[index],
+                trimStart: this.trimStart[index],
+                trimEnd: this.trimEnd[index]
+            }))
+        };
+    }
+
+    /**
+     * Run headless test - proves the engine works without any GUI
+     * @param {string} testPresetId - Optional preset ID to load for testing
+     * @returns {Promise<Object>} - Test results
+     */
+    async runHeadlessTest(testPresetId = null) {
+        console.log('🧪 ═══════════════════════════════════════════');
+        console.log('🧪 HEADLESS AUDIO ENGINE TEST');
+        console.log('🧪 ═══════════════════════════════════════════');
+        
+        const results = {
+            timestamp: new Date().toISOString(),
+            tests: [],
+            passed: 0,
+            failed: 0
+        };
+
+        // Test 1: Initialization
+        console.log('\n📋 Test 1: AudioContext Initialization');
+        try {
+            const initResult = await this.init();
+            results.tests.push({
+                name: 'AudioContext Initialization',
+                passed: initResult && this.audioContext !== null,
+                details: `State: ${this.getState()}`
+            });
+            if (initResult) {
+                console.log('   ✅ PASSED - AudioContext created');
+                results.passed++;
+            } else {
+                console.log('   ❌ FAILED - Could not create AudioContext');
+                results.failed++;
+            }
+        } catch (error) {
+            console.log('   ❌ FAILED -', error.message);
+            results.tests.push({ name: 'AudioContext Initialization', passed: false, error: error.message });
+            results.failed++;
+        }
+
+        // Test 2: Fetch Presets
+        console.log('\n📋 Test 2: Fetch Presets from API');
+        try {
+            const presets = await this.fetchPresets();
+            const passed = Array.isArray(presets);
+            results.tests.push({
+                name: 'Fetch Presets',
+                passed,
+                details: `Found ${presets.length} presets`
+            });
+            if (passed) {
+                console.log(`   ✅ PASSED - Found ${presets.length} presets`);
+                presets.forEach(p => console.log(`      - ${p.id}: ${p.name} (${p.category})`));
+                results.passed++;
+            } else {
+                console.log('   ❌ FAILED - Invalid response');
+                results.failed++;
+            }
+        } catch (error) {
+            console.log('   ❌ FAILED -', error.message);
+            results.tests.push({ name: 'Fetch Presets', passed: false, error: error.message });
+            results.failed++;
+        }
+
+        // Test 3: Load Preset (if available)
+        if (testPresetId) {
+            console.log(`\n📋 Test 3: Load Preset "${testPresetId}"`);
+            try {
+                const loaded = await this.loadPreset(testPresetId);
+                const loadedCount = this.buffers.filter(b => b !== null).length;
+                results.tests.push({
+                    name: 'Load Preset',
+                    passed: loaded,
+                    details: `Loaded ${loadedCount} sounds`
+                });
+                if (loaded) {
+                    console.log(`   ✅ PASSED - Loaded ${loadedCount} sounds`);
+                    results.passed++;
+                } else {
+                    console.log('   ❌ FAILED - Could not load preset');
+                    results.failed++;
+                }
+            } catch (error) {
+                console.log('   ❌ FAILED -', error.message);
+                results.tests.push({ name: 'Load Preset', passed: false, error: error.message });
+                results.failed++;
+            }
+        }
+
+        // Test 4: Play sounds (if loaded)
+        const loadedPads = this.buffers.map((b, i) => b !== null ? i : -1).filter(i => i >= 0);
+        if (loadedPads.length > 0) {
+            console.log(`\n📋 Test 4: Play Sounds (pads: ${loadedPads.join(', ')})`);
+            let playedCount = 0;
+            for (const padIndex of loadedPads.slice(0, 3)) { // Test up to 3 pads
+                const played = this.playSound(padIndex);
+                if (played) playedCount++;
+            }
+            const passed = playedCount > 0;
+            results.tests.push({
+                name: 'Play Sounds',
+                passed,
+                details: `Played ${playedCount}/${Math.min(loadedPads.length, 3)} sounds`
+            });
+            if (passed) {
+                console.log(`   ✅ PASSED - Played ${playedCount} sounds`);
+                results.passed++;
+            } else {
+                console.log('   ❌ FAILED - Could not play sounds');
+                results.failed++;
+            }
+        }
+
+        // Test 5: Trim controls
+        console.log('\n📋 Test 5: Trim Controls');
+        this.setTrimStart(0, 0.1);
+        this.setTrimEnd(0, 0.9);
+        const trimValues = this.getTrimValues(0);
+        const trimPassed = trimValues.start === 0.1 && trimValues.end === 0.9;
+        results.tests.push({
+            name: 'Trim Controls',
+            passed: trimPassed,
+            details: `Start: ${trimValues.start}, End: ${trimValues.end}`
+        });
+        if (trimPassed) {
+            console.log(`   ✅ PASSED - Trim: ${trimValues.start} - ${trimValues.end}`);
+            results.passed++;
+        } else {
+            console.log('   ❌ FAILED - Trim values incorrect');
+            results.failed++;
+        }
+
+        // Test 6: Engine Status
+        console.log('\n📋 Test 6: Engine Status');
+        const status = this.getStatus();
+        const statusPassed = status.initialized === true;
+        results.tests.push({
+            name: 'Engine Status',
+            passed: statusPassed,
+            details: status
+        });
+        if (statusPassed) {
+            console.log('   ✅ PASSED - Engine status retrieved');
+            console.log(`      Initialized: ${status.initialized}`);
+            console.log(`      State: ${status.state}`);
+            console.log(`      Loaded Pads: ${status.loadedPads}`);
+            results.passed++;
+        } else {
+            console.log('   ❌ FAILED - Engine not properly initialized');
+            results.failed++;
+        }
+
+        // Summary
+        console.log('\n🧪 ═══════════════════════════════════════════');
+        console.log(`🧪 TEST SUMMARY: ${results.passed} passed, ${results.failed} failed`);
+        console.log('🧪 ═══════════════════════════════════════════\n');
+
+        results.summary = {
+            total: results.passed + results.failed,
+            passed: results.passed,
+            failed: results.failed,
+            success: results.failed === 0
+        };
+
+        return results;
+    }
+}
+
+// Export for Node.js / module environments (if available)
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = AudioEngine;
 }
