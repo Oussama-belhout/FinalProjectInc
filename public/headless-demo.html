@@ -297,11 +297,11 @@
 <body>
     <div class="container">
         <header>
-            <h1>🎛️ AudioEngine Headless Demo</h1>
+            <h1><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px;vertical-align:middle;margin-right:10px"><circle cx="5.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="15.5" r="2.5"/><path d="M8 17V5l12-2v10"/></svg>AudioEngine Headless Demo</h1>
             <p class="subtitle">Proving the audio engine works without any GUI dependencies</p>
             
             <div class="info-box">
-                <h3>🎯 What this demonstrates:</h3>
+                <h3>What this demonstrates:</h3>
                 <ul>
                     <li>AudioEngine class has ZERO DOM dependencies</li>
                     <li>All audio operations work via pure JavaScript API calls</li>
@@ -334,22 +334,22 @@
 
         <div class="controls">
             <button class="btn-primary" id="btnInit" onclick="initEngine()">
-                🔊 Initialize Engine
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;vertical-align:middle;margin-right:6px"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>Initialize Engine
             </button>
             <button class="btn-secondary" id="btnTest" onclick="runTest()" disabled>
-                🧪 Run Headless Test
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;vertical-align:middle;margin-right:6px"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Run Headless Test
             </button>
             <select class="preset-select" id="presetSelect" onchange="loadSelectedPreset()" disabled>
                 <option value="">-- Select Preset --</option>
             </select>
             <button class="btn-success" id="btnPlayAll" onclick="playAllSounds()" disabled>
-                ▶️ Play All Sounds
+                <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:16px;height:16px;vertical-align:middle;margin-right:6px"><polygon points="5 3 19 12 5 21 5 3"/></svg>Play All Sounds
             </button>
         </div>
 
         <div class="console">
             <div class="console-header">
-                <span class="console-title">📟 Console Output</span>
+                <span class="console-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:6px"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>Console Output</span>
                 <button class="clear-btn" onclick="clearConsole()">Clear</button>
             </div>
             <div class="console-output" id="consoleOutput"></div>
@@ -392,11 +392,11 @@
             originalLog.apply(console, args);
             const message = args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : a).join(' ');
             
-            if (message.includes('═══')) {
+            if (message.includes('===')) {
                 logToConsole(message, 'header');
-            } else if (message.includes('✅')) {
+            } else if (message.includes('[PASS]') || message.includes('[OK]')) {
                 logToConsole(message, 'success');
-            } else if (message.includes('❌')) {
+            } else if (message.includes('[FAIL]') || message.includes('[Error]')) {
                 logToConsole(message, 'error');
             } else {
                 logToConsole(message, 'info');
@@ -458,10 +458,10 @@
 
         // Initialize the engine
         async function initEngine() {
-            logToConsole('\n🚀 Creating new AudioEngine instance...', 'info');
+            logToConsole('\n[Init] Creating new AudioEngine instance...', 'info');
             engine = new AudioEngine();
             
-            logToConsole('📡 Calling engine.init() - NO GUI CODE INVOLVED', 'info');
+            logToConsole('[Init] Calling engine.init() - NO GUI CODE INVOLVED', 'info');
             const success = await engine.init();
             
             if (success) {
@@ -471,7 +471,7 @@
                 document.getElementById('presetSelect').disabled = false;
                 
                 // Fetch presets
-                logToConsole('\n📋 Fetching presets from API...', 'info');
+                logToConsole('\n[Presets] Fetching presets from API...', 'info');
                 const presets = await engine.fetchPresets();
                 
                 const select = document.getElementById('presetSelect');
@@ -483,7 +483,7 @@
                     select.appendChild(option);
                 });
                 
-                logToConsole(`✅ Found ${presets.length} presets`, 'success');
+                logToConsole(`[OK] Found ${presets.length} presets`, 'success');
             } else {
                 document.getElementById('engineState').textContent = 'Failed';
                 document.getElementById('engineState').className = 'status-value error';
@@ -518,7 +518,7 @@
             const presetId = document.getElementById('presetSelect').value;
             if (!presetId) return;
             
-            logToConsole(`\n📦 Loading preset: ${presetId}`, 'info');
+            logToConsole(`\n[Preset] Loading preset: ${presetId}`, 'info');
             const success = await engine.loadPreset(presetId);
             
             if (success) {
@@ -532,7 +532,7 @@
         function playAllSounds() {
             if (!engine) return;
             
-            logToConsole('\n▶️ Playing all loaded sounds...', 'info');
+            logToConsole('\n[Play] Playing all loaded sounds...', 'info');
             
             for (let i = 0; i < 16; i++) {
                 if (engine.hasSound(i)) {
@@ -546,7 +546,7 @@
         // Initialize on page load
         window.addEventListener('DOMContentLoaded', () => {
             initPadGrid();
-            logToConsole('🎛️ Headless Demo Ready', 'success');
+            logToConsole('[Ready] Headless Demo Ready', 'success');
             logToConsole('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
             logToConsole('This demo proves that AudioEngine works independently.', 'info');
             logToConsole('The engine has ZERO GUI dependencies.', 'info');

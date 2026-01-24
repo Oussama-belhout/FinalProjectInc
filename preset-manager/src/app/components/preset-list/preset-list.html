@@ -2,12 +2,17 @@
   <header class="header">
     <div class="header-content">
       <div>
-        <h1>🎹 Preset Manager</h1>
+        <h1><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px;vertical-align:middle;margin-right:8px"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></svg>Preset Manager</h1>
         <p class="subtitle">Manage your sampler presets</p>
       </div>
-      <a routerLink="/presets/new" class="create-btn">
-        <span>+</span> Create New
-      </a>
+      <div class="header-actions">
+        <a routerLink="/presets/new" class="create-btn">
+          <span>+</span> Create New
+        </a>
+        <a href="/sampler.html" class="sampler-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;vertical-align:middle;margin-right:4px"><polygon points="5 3 19 12 5 21 5 3"/></svg>Open Sampler
+        </a>
+      </div>
     </div>
   </header>
 
@@ -27,41 +32,59 @@
   </div>
   }
 
-  <!-- Preset List -->
+  <!-- Preset Table -->
   @if (!loading && !error) {
-  <div class="preset-categories">
-    @for (category of categories; track category) {
-    <div class="category-group">
-      <h2 class="category-title">
-        <span class="icon">{{ getCategoryIcon(category) }}</span>
-        {{ category }}
-      </h2>
-      <div class="preset-grid">
-        @for (preset of groupedPresets[category]; track preset.id) {
-        <div class="preset-card">
-          <a [routerLink]="['/presets', preset.id]" class="preset-link">
-            <h3 class="preset-name">{{ preset.name }}</h3>
-            <p class="preset-info">{{ preset.soundCount }} sounds</p>
-          </a>
-          <div class="card-actions">
-            <a [routerLink]="['/presets/edit', preset.id]" class="action-btn edit-btn" title="Edit preset">
-              ✏️
-            </a>
-            <button class="action-btn delete-btn" (click)="deletePreset(preset, $event)" title="Delete preset">
-              🗑️
-            </button>
-          </div>
-        </div>
+  <div class="preset-table-container">
+    <table class="preset-table">
+      <thead>
+        <tr>
+          <th class="th-category">Category</th>
+          <th class="th-name">Preset Name</th>
+          <th class="th-sounds">Sounds</th>
+          <th class="th-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (preset of presets; track preset.id) {
+        <tr class="preset-row" (click)="navigateToPreset(preset.id)">
+          <td class="td-category">
+            <span class="category-badge">
+              <span class="category-icon">{{ getCategoryIcon(preset.category || 'Uncategorized') }}</span>
+
+            </span>
+          </td>
+          <td class="td-name">
+            <span class="preset-name">{{ preset.name }}</span>
+          </td>
+          <td class="td-sounds">
+            <span class="sound-count">
+              <span class="sound-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>
+              {{ preset.soundCount }}
+            </span>
+          </td>
+          <td class="td-actions">
+            <div class="row-actions">
+              <button class="action-btn view-btn" (click)="navigateToPreset(preset.id); $event.stopPropagation()" title="View preset">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+              <button class="action-btn edit-btn" (click)="editPreset(preset, $event)" title="Edit preset">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="action-btn delete-btn" (click)="deletePreset(preset, $event)" title="Delete preset">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
         }
-      </div>
+      </tbody>
+    </table>
+
+    @if (presets.length === 0) {
+    <div class="empty-state">
+      <p>No presets found. Create one using the sampler!</p>
     </div>
     }
   </div>
-
-  @if (presets.length === 0) {
-  <div class="empty-state">
-    <p>No presets found. Create one using the sampler!</p>
-  </div>
-  }
   }
 </div>

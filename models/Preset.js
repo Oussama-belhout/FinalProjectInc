@@ -18,8 +18,7 @@ const SoundSchema = new mongoose.Schema({
 const PresetSchema = new mongoose.Schema({
     id: {
         type: String,
-        required: true,
-        unique: true
+        required: true
     },
     name: {
         type: String,
@@ -32,9 +31,22 @@ const PresetSchema = new mongoose.Schema({
     description: {
         type: String
     },
-    sounds: [SoundSchema]
+    sounds: [SoundSchema],
+    // User ownership - presets belong to a specific user
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false // Allow public presets (null user = shared/demo presets)
+    },
+    isPublic: {
+        type: Boolean,
+        default: false // Private by default
+    }
 }, {
     timestamps: true
 });
+
+// Compound index: id must be unique per user (or globally for public presets)
+PresetSchema.index({ id: 1, user: 1 }, { unique: true });
 
 module.exports = mongoose.model('Preset', PresetSchema);

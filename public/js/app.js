@@ -8,25 +8,25 @@
 let audioEngine;
 let gui;
 
-// Category emoji icons
+// Category text labels (professional UI)
 const CATEGORY_ICONS = {
-    'Drums': '🥁',
-    'Electronic': '🎛️',
-    'Percussion': '🪘',
-    'FX': '✨',
-    'Vocals': '🎤',
-    'Bass': '🎸',
-    'Synth': '🎹',
-    'World': '🌍',
-    'Custom': '⚙️',
-    'Uncategorized': '📁'
+    'Drums': 'DR',
+    'Electronic': 'EL',
+    'Percussion': 'PE',
+    'FX': 'FX',
+    'Vocals': 'VO',
+    'Bass': 'BA',
+    'Synth': 'SY',
+    'World': 'WO',
+    'Custom': 'CU',
+    'Uncategorized': '--'
 };
 
 /**
  * Initialize the application
  */
 async function initApp() {
-    console.log('🎹 Initializing Sampler...');
+    console.log('[Sampler] Initializing...');
 
     // Create instances
     audioEngine = new AudioEngine();
@@ -48,10 +48,16 @@ async function initApp() {
     // Setup upload controls
     setupUploadControls();
 
+    // Setup keyboard overlay toggle
+    setupKeyboardOverlay();
+
+    // Setup track recording controls
+    setupTrackRecording();
+
     // Hide test button since we have presets now
     document.getElementById('test-section').style.display = 'none';
 
-    console.log('✅ Sampler ready! Select a preset and click Load.');
+    console.log('[Sampler] Ready! Select a preset and click Load.');
 }
 
 /**
@@ -82,7 +88,7 @@ async function setupPresetControls() {
 
     // Populate dropdown with optgroups
     sortedCategories.forEach(category => {
-        const icon = CATEGORY_ICONS[category] || '📁';
+        const icon = CATEGORY_ICONS[category] || '--';
         const optgroup = document.createElement('optgroup');
         optgroup.label = `${icon} ${category}`;
 
@@ -150,6 +156,21 @@ async function setupPresetControls() {
         loadBtn.disabled = false;
         presetSelect.disabled = false;
     });
+
+    // Stop All button - stops all playing sounds
+    const stopAllBtn = document.getElementById('stop-all-btn');
+    if (stopAllBtn) {
+        stopAllBtn.addEventListener('click', () => {
+            audioEngine.stopAllSounds(false);
+            // Update visual state of pads
+            for (let i = 0; i < 16; i++) {
+                const pad = document.querySelector(`.pad[data-index="${i}"]`);
+                if (pad) {
+                    pad.classList.remove('active');
+                }
+            }
+        });
+    }
 }
 
 /**
@@ -182,7 +203,7 @@ function setupRecordingControls() {
             // Start Recording
             if (audioEngine.startRecording()) {
                 isRecording = true;
-                recordBtn.textContent = '⏹️ Stop';
+                recordBtn.textContent = '■ Stop';
                 recordBtn.classList.add('recording');
                 status.classList.remove('hidden');
                 padSelect.disabled = true;
@@ -194,11 +215,11 @@ function setupRecordingControls() {
                 const padIndex = parseInt(padSelect.value);
                 audioEngine.loadBuffer(buffer, padIndex);
                 gui.updatePadState(padIndex, true);
-                console.log(`✅ Recorded sound assigned to Pad ${padIndex}`);
+                console.log(`[Success] Recorded sound assigned to Pad ${padIndex}`);
             }
 
             isRecording = false;
-            recordBtn.textContent = '🔴 Record';
+            recordBtn.innerHTML = '<span class="record-dot"></span> Record';
             recordBtn.classList.remove('recording');
             status.classList.add('hidden');
             padSelect.disabled = false;
@@ -210,7 +231,7 @@ function setupRecordingControls() {
  * Setup upload controls
  */
 function setupUploadControls() {
-    console.log('🔧 Setting up upload controls...');
+    console.log('[Setup] Setting up upload controls...');
     const uploadBtn = document.getElementById('upload-btn');
     const fileInput = document.getElementById('upload-file-input');
     const padSelect = document.getElementById('upload-pad-select');
@@ -218,15 +239,15 @@ function setupUploadControls() {
     console.log('Upload elements:', { uploadBtn, fileInput, padSelect });
 
     if (!uploadBtn || !fileInput) {
-        console.error('❌ Upload controls not found!');
+        console.error('[Error] Upload controls not found!');
         return;
     }
 
-    console.log('✅ Upload controls found, adding event listeners...');
+    console.log('[OK] Upload controls found, adding event listeners...');
 
     // Trigger file input when button is clicked
     uploadBtn.addEventListener('click', () => {
-        console.log('📂 Upload button clicked!');
+        console.log('[Upload] Button clicked!');
         fileInput.click();
     });
 
@@ -250,13 +271,178 @@ function setupUploadControls() {
 
         if (success) {
             gui.updatePadState(padIndex, true);
-            console.log(`✅ Uploaded file "${file.name}" assigned to Pad ${padIndex}`);
+            console.log(`[OK] Uploaded file "${file.name}" assigned to Pad ${padIndex}`);
         } else {
             alert('Failed to load audio file.');
         }
 
         // Reset input
         fileInput.value = '';
+    });
+}
+
+/**
+ * Setup keyboard overlay toggle
+ */
+function setupKeyboardOverlay() {
+    const toggleBtn = document.getElementById('keyboard-toggle-btn');
+    const overlay = document.getElementById('keyboard-overlay');
+    const closeBtn = document.getElementById('keyboard-close-btn');
+
+    if (!toggleBtn || !overlay) return;
+
+    // Toggle overlay on button click
+    toggleBtn.addEventListener('click', () => {
+        overlay.classList.toggle('hidden');
+    });
+
+    // Close overlay on close button click
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            overlay.classList.add('hidden');
+        });
+    }
+
+    // Close overlay on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !overlay.classList.contains('hidden')) {
+            overlay.classList.add('hidden');
+        }
+    });
+
+    // Close overlay when clicking outside content
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            overlay.classList.add('hidden');
+        }
+    });
+
+    // Highlight keys in overlay when pressed
+    const keys = overlay.querySelectorAll('.key');
+    const keyMap = ['1', '2', '3', '4', 'q', 'w', 'e', 'r', 'a', 's', 'd', 'f', 'z', 'x', 'c', 'v'];
+
+    document.addEventListener('keydown', (e) => {
+        const keyIndex = keyMap.indexOf(e.key.toLowerCase());
+        if (keyIndex !== -1 && keys[keyIndex]) {
+            keys[keyIndex].classList.add('active');
+        }
+    });
+
+    document.addEventListener('keyup', (e) => {
+        const keyIndex = keyMap.indexOf(e.key.toLowerCase());
+        if (keyIndex !== -1 && keys[keyIndex]) {
+            keys[keyIndex].classList.remove('active');
+        }
+    });
+}
+
+/**
+ * Setup track recording controls
+ */
+function setupTrackRecording() {
+    const recordBtn = document.getElementById('track-record-btn');
+    const playBtn = document.getElementById('track-play-btn');
+    const downloadBtn = document.getElementById('track-download-btn');
+    const timeDisplay = document.getElementById('track-record-time');
+
+    if (!recordBtn || !playBtn || !downloadBtn || !timeDisplay) return;
+
+    let recordingStartTime = null;
+    let timeUpdateInterval = null;
+    let currentPlayback = null;
+
+    // Format time as MM:SS
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    // Update time display during recording
+    const updateTime = () => {
+        if (recordingStartTime) {
+            const elapsed = (Date.now() - recordingStartTime) / 1000;
+            timeDisplay.textContent = formatTime(elapsed);
+        }
+    };
+
+    // Record button click
+    recordBtn.addEventListener('click', async () => {
+        // Initialize audio context if needed
+        if (!audioEngine.audioContext) {
+            await audioEngine.init();
+        }
+
+        if (!audioEngine.isTrackRecording()) {
+            // Start recording
+            const started = audioEngine.startTrackRecording();
+            if (started) {
+                recordBtn.textContent = '■ Stop Recording';
+                recordBtn.classList.add('recording');
+                timeDisplay.classList.add('recording');
+                playBtn.disabled = true;
+                downloadBtn.disabled = true;
+                
+                recordingStartTime = Date.now();
+                timeUpdateInterval = setInterval(updateTime, 100);
+            }
+        } else {
+            // Stop recording
+            const blob = await audioEngine.stopTrackRecording();
+            if (blob) {
+                recordBtn.textContent = '⏺ Start Recording';
+                recordBtn.classList.remove('recording');
+                timeDisplay.classList.remove('recording');
+                playBtn.disabled = false;
+                downloadBtn.disabled = false;
+                
+                clearInterval(timeUpdateInterval);
+                recordingStartTime = null;
+            }
+        }
+    });
+
+    // Play button click
+    playBtn.addEventListener('click', async () => {
+        if (currentPlayback) {
+            // Stop current playback
+            try {
+                currentPlayback.stop();
+            } catch (e) {}
+            currentPlayback = null;
+            playBtn.textContent = 'Play';
+            playBtn.classList.remove('playing');
+            return;
+        }
+
+        currentPlayback = await audioEngine.playRecordedTrack();
+        if (currentPlayback) {
+            playBtn.textContent = 'Stop';
+            playBtn.classList.add('playing');
+            
+            currentPlayback.onended = () => {
+                playBtn.textContent = 'Play';
+                playBtn.classList.remove('playing');
+                currentPlayback = null;
+            };
+        }
+    });
+
+    // Download button click
+    downloadBtn.addEventListener('click', () => {
+        const blob = audioEngine.getRecordedTrack();
+        if (!blob) return;
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `sampler-track-${Date.now()}.webm`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        console.log('[Download] Track downloaded');
     });
 }
 

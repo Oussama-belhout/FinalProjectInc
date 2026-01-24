@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { PresetService } from '../../services/preset';
 import { PresetSummary } from '../../models/preset';
 
@@ -16,23 +16,24 @@ export class PresetList implements OnInit {
   loading = true;
   error: string | null = null;
 
-  // Category icons
+  // Category icons (text labels for professional UI)
   categoryIcons: { [key: string]: string } = {
-    'Drums': '🥁',
-    'Electronic': '🎛️',
-    'Percussion': '🪘',
-    'FX': '✨',
-    'Vocals': '🎤',
-    'Bass': '🎸',
-    'Synth': '🎹',
-    'World': '🌍',
-    'Custom': '⚙️',
-    'Uncategorized': '📁'
+    'Drums': 'DR',
+    'Electronic': 'EL',
+    'Percussion': 'PE',
+    'FX': 'FX',
+    'Vocals': 'VO',
+    'Bass': 'BA',
+    'Synth': 'SY',
+    'World': 'WO',
+    'Custom': 'CU',
+    'Uncategorized': '--'
   };
 
   constructor(
     private presetService: PresetService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -74,11 +75,20 @@ export class PresetList implements OnInit {
   }
 
   getCategoryIcon(category: string): string {
-    return this.categoryIcons[category] || '📁';
+    return this.categoryIcons[category] || '--';
   }
 
   get categories(): string[] {
     return Object.keys(this.groupedPresets).sort();
+  }
+
+  navigateToPreset(id: string): void {
+    this.router.navigate(['/presets', id]);
+  }
+
+  editPreset(preset: PresetSummary, event: Event): void {
+    event.stopPropagation();
+    this.router.navigate(['/presets/edit', preset.id]);
   }
 
   deletePreset(preset: PresetSummary, event: Event): void {

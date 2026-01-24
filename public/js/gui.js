@@ -58,6 +58,9 @@ class GUI {
         
         // Setup keyboard controls
         this.setupKeyboardControls();
+        
+        // Setup pad settings panel
+        this.setupPadSettings();
     }
 
     /**
@@ -114,6 +117,11 @@ class GUI {
             this.pressedKeys.delete(key);
             const padIndex = this.keyboardMapping[key];
             this.deactivatePad(padIndex);
+            
+            // Stop sound if in gate mode
+            if (this.audioEngine.getPlayMode(padIndex) === 'gate') {
+                this.audioEngine.stopSound(padIndex, true); // Use release envelope
+            }
         }
     }
 
@@ -186,6 +194,9 @@ class GUI {
         this.pads.forEach((pad, i) => {
             pad.classList.toggle('selected', i === padIndex);
         });
+        
+        // Show and update pad settings panel
+        this.showPadSettings(padIndex);
     }
 
     /**
@@ -201,6 +212,9 @@ class GUI {
         this.pads.forEach(pad => {
             pad.classList.remove('selected');
         });
+        
+        // Hide pad settings panel
+        this.hidePadSettings();
         
         // Clear the canvas completely
         const canvas = this.waveformCanvas;
@@ -543,5 +557,141 @@ class GUI {
             this.pads[padIndex].classList.add('empty');
             this.pads[padIndex].classList.remove('loaded');
         }
+    }
+
+    // =============================================
+    // PAD SETTINGS PANEL METHODS
+    // =============================================
+
+    /**
+     * Setup pad settings panel event listeners
+     */
+    setupPadSettings() {
+        // Mode buttons (One-Shot / Gate)
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const mode = e.target.dataset.mode;
+                if (this.selectedPad !== null) {
+                    this.audioEngine.setPlayMode(this.selectedPad, mode);
+                    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                }
+            });
+        });
+
+        // Loop toggle
+        document.getElementById('loop-toggle').addEventListener('change', (e) => {
+            if (this.selectedPad !== null) {
+                this.audioEngine.setLoop(this.selectedPad, e.target.checked);
+            }
+        });
+
+        // Reverse toggle
+        document.getElementById('reverse-toggle').addEventListener('change', (e) => {
+            if (this.selectedPad !== null) {
+                this.audioEngine.setReverse(this.selectedPad, e.target.checked);
+            }
+        });
+
+        // Volume slider
+        document.getElementById('volume-slider').addEventListener('input', (e) => {
+            const value = parseInt(e.target.value) / 100;
+            if (this.selectedPad !== null) {
+                this.audioEngine.setVolume(this.selectedPad, value);
+                document.getElementById('volume-value').textContent = `${e.target.value}%`;
+            }
+        });
+
+        // Pitch slider
+        document.getElementById('pitch-slider').addEventListener('input', (e) => {
+            const value = parseInt(e.target.value) / 100;
+            if (this.selectedPad !== null) {
+                this.audioEngine.setPitch(this.selectedPad, value);
+                document.getElementById('pitch-value').textContent = `${value.toFixed(2)}x`;
+            }
+        });
+
+        // Attack slider
+        document.getElementById('attack-slider').addEventListener('input', (e) => {
+            const value = parseInt(e.target.value) / 1000; // Convert ms to seconds
+            if (this.selectedPad !== null) {
+                this.audioEngine.setAttack(this.selectedPad, value);
+                document.getElementById('attack-value').textContent = `${e.target.value}ms`;
+            }
+        });
+
+        // Release slider
+        document.getElementById('release-slider').addEventListener('input', (e) => {
+            const value = parseInt(e.target.value) / 1000; // Convert ms to seconds
+            if (this.selectedPad !== null) {
+                this.audioEngine.setRelease(this.selectedPad, value);
+                document.getElementById('release-value').textContent = `${e.target.value}ms`;
+            }
+        });
+
+        // Reset button
+        document.getElementById('reset-pad-settings').addEventListener('click', () => {
+            if (this.selectedPad !== null) {
+                this.audioEngine.resetPadSettings(this.selectedPad);
+                this.updatePadSettingsUI(this.selectedPad);
+            }
+        });
+    }
+
+    /**
+     * Show pad settings panel and populate with current values
+     * @param {number} padIndex - Pad index
+     */
+    showPadSettings(padIndex) {
+        const panel = document.getElementById('pad-settings');
+        panel.classList.remove('hidden');
+        document.getElementById('settings-pad-number').textContent = padIndex;
+        this.updatePadSettingsUI(padIndex);
+    }
+
+    /**
+     * Hide pad settings panel
+     */
+    hidePadSettings() {
+        document.getElementById('pad-settings').classList.add('hidden');
+    }
+
+    /**
+     * Update all pad settings UI controls to reflect current engine values
+     * @param {number} padIndex - Pad index
+     */
+    updatePadSettingsUI(padIndex) {
+        const settings = this.audioEngine.getPadSettings(padIndex);
+
+        // Update play mode buttons
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.mode === settings.playMode);
+        });
+
+        // Update loop toggle
+        document.getElementById('loop-toggle').checked = settings.loop;
+
+        // Update reverse toggle
+        document.getElementById('reverse-toggle').checked = settings.reverse;
+
+        // Update volume slider
+        const volumePercent = Math.round(settings.volume * 100);
+        document.getElementById('volume-slider').value = volumePercent;
+        document.getElementById('volume-value').textContent = `${volumePercent}%`;
+
+        // Update pitch slider
+        const pitchPercent = Math.round(settings.pitch * 100);
+        document.getElementById('pitch-slider').value = pitchPercent;
+        document.getElementById('pitch-value').textContent = `${settings.pitch.toFixed(2)}x`;
+
+        // Update attack slider
+        const attackMs = Math.round(settings.attack * 1000);
+        document.getElementById('attack-slider').value = attackMs;
+        document.getElementById('attack-value').textContent = `${attackMs}ms`;
+
+        // Update release slider
+        const releaseMs = Math.round(settings.release * 1000);
+        document.getElementById('release-slider').value = releaseMs;
+        document.getElementById('release-value').textContent = `${releaseMs}ms`;
     }
 }

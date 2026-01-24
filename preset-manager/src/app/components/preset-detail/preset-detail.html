@@ -1,5 +1,5 @@
 <div class="preset-detail-container">
-  <a routerLink="/presets" class="back-link">← Back to Presets</a>
+  <a routerLink="/presets" class="back-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;vertical-align:middle;margin-right:6px"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back to Presets</a>
 
   <!-- Loading State -->
   @if (loading) {
@@ -27,8 +27,8 @@
             <span class="category-badge">{{ preset.category }}</span>
           </div>
           <div class="header-actions">
-            <button class="edit-btn" (click)="startEditing()">✏️ Rename</button>
-            <button class="delete-btn" (click)="deletePreset()">🗑️ Delete</button>
+            <button class="edit-btn" (click)="startEditing()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:4px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Rename</button>
+            <button class="delete-btn" (click)="deletePreset()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:4px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Delete</button>
           </div>
         } @else {
           <div class="edit-form">
@@ -54,7 +54,7 @@
                 class="save-btn" 
                 (click)="saveChanges()" 
                 [disabled]="saving || !editName.trim()">
-                {{ saving ? 'Saving...' : '💾 Save' }}
+                {{ saving ? 'Saving...' : '' }}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:4px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>{{ saving ? '' : 'Save' }}
               </button>
               <button class="cancel-btn" (click)="cancelEditing()" [disabled]="saving">
                 Cancel
@@ -65,7 +65,7 @@
       </div>
 
       <div class="sounds-section">
-        <h2>🎵 Sounds ({{ preset.sounds.length }})</h2>
+        <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;vertical-align:middle;margin-right:6px"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Sounds ({{ preset.sounds.length }})</h2>
         
         @if (preset.sounds.length > 0) {
           <div class="sounds-grid">
@@ -77,13 +77,17 @@
                     (click)="playSound(sound.url)" 
                     [disabled]="playingIndex === i"
                     title="Play sound">
-                    {{ playingIndex === i ? '⏹️' : '▶️' }}
+                    @if (playingIndex === i) {
+                      <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:16px;height:16px"><rect x="6" y="6" width="12" height="12"/></svg>
+                    } @else {
+                      <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:16px;height:16px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    }
                   </button>
                   <button 
                     class="delete-sound-btn" 
                     (click)="deleteSound(i)"
                     title="Delete sound">
-                    🗑️
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                   </button>
                 </div>
                 <span class="pad-number">Pad {{ sound.pad }}</span>
@@ -93,8 +97,134 @@
             }
           </div>
         } @else {
-          <p class="no-sounds">No sounds in this preset</p>
+          <p class="no-sounds">No sounds in this preset yet. Add one below!</p>
         }
+
+        <!-- Add Sound Section -->
+        <div class="add-sound-section">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;vertical-align:middle;margin-right:6px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Sound</h3>
+          
+          <!-- Source Type Tabs -->
+          <div class="source-tabs">
+            <button type="button" 
+              class="source-tab" 
+              [class.active]="addSoundMode === 'url'"
+              (click)="addSoundMode = 'url'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:4px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>URL
+            </button>
+            <button type="button" 
+              class="source-tab" 
+              [class.active]="addSoundMode === 'upload'"
+              (click)="addSoundMode = 'upload'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:4px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload
+            </button>
+            <button type="button" 
+              class="source-tab" 
+              [class.active]="addSoundMode === 'record'"
+              (click)="addSoundMode = 'record'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:4px"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>Record
+            </button>
+          </div>
+
+          <!-- URL Mode -->
+          @if (addSoundMode === 'url') {
+            <div class="add-sound-grid">
+              <div class="form-group">
+                <label>Pad</label>
+                <input type="number" [(ngModel)]="newSound.pad" min="0" max="15">
+              </div>
+              <div class="form-group">
+                <label>Name</label>
+                <input type="text" [(ngModel)]="newSound.name" placeholder="Sound name">
+              </div>
+              <div class="form-group url-field">
+                <label>URL</label>
+                <input type="text" [(ngModel)]="newSound.url" placeholder="https://...">
+              </div>
+              <button class="add-btn" (click)="addSoundFromUrl()" [disabled]="!newSound.name || !newSound.url">
+                Add Sound
+              </button>
+            </div>
+          }
+
+          <!-- Upload Mode -->
+          @if (addSoundMode === 'upload') {
+            <div class="add-sound-grid">
+              <div class="form-group">
+                <label>Pad</label>
+                <input type="number" [(ngModel)]="newSound.pad" min="0" max="15">
+              </div>
+              <div class="form-group">
+                <label>Name</label>
+                <input type="text" [(ngModel)]="newSound.name" placeholder="Sound name">
+              </div>
+              <div class="form-group file-field">
+                <label>File</label>
+                <div class="file-upload-zone" 
+                  (click)="fileInput.click()"
+                  (drop)="onFileDrop($event)"
+                  (dragover)="onDragOver($event)"
+                  (dragleave)="onDragLeave($event)"
+                  [class.dragging]="isDragging">
+                  <input #fileInput type="file" accept="audio/*" (change)="onFileSelected($event)" hidden>
+                  @if (!selectedFile) {
+                    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;vertical-align:middle;margin-right:4px"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Click or drop file</span>
+                  } @else {
+                    <span class="selected">{{ selectedFile.name }}</span>
+                  }
+                </div>
+              </div>
+              <button class="add-btn" (click)="uploadAndAddSound()" [disabled]="!selectedFile || isUploading">
+                {{ isUploading ? 'Uploading...' : 'Upload & Add' }}
+              </button>
+            </div>
+          }
+
+          <!-- Record Mode -->
+          @if (addSoundMode === 'record') {
+            <div class="add-sound-grid record-mode">
+              <div class="form-group">
+                <label>Pad</label>
+                <input type="number" [(ngModel)]="newSound.pad" min="0" max="15">
+              </div>
+              <div class="form-group">
+                <label>Name</label>
+                <input type="text" [(ngModel)]="newSound.name" placeholder="Sound name">
+              </div>
+              <div class="form-group record-field">
+                <label>Recording</label>
+                <div class="record-zone">
+                  <div class="record-status" [class.recording]="isRecording">
+                    <span class="record-dot"></span>
+                    @if (!isRecording && !recordedBlob) {
+                      <span>Ready</span>
+                    } @else if (isRecording) {
+                      <span>Recording {{ recordingTime }}s</span>
+                    } @else {
+                      <span>Recorded ({{ recordingDuration }}s)</span>
+                    }
+                  </div>
+                  <div class="record-controls">
+                    <button type="button" class="record-btn" [class.recording]="isRecording" (click)="toggleRecording()">
+                      @if (isRecording) {
+                        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:16px;height:16px"><rect x="6" y="6" width="12" height="12"/></svg>
+                      } @else {
+                        <span class="record-dot"></span>
+                      }
+                    </button>
+                    @if (recordedBlob && !isRecording) {
+                      <button type="button" class="preview-btn" (click)="playRecordedSound()"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:14px;height:14px"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
+                      <button type="button" class="clear-btn" (click)="clearRecording()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                    }
+                  </div>
+                </div>
+              </div>
+              <button class="add-btn" (click)="uploadRecordingAndAdd()" [disabled]="!recordedBlob || isUploading">
+                {{ isUploading ? 'Uploading...' : 'Save Recording' }}
+              </button>
+            </div>
+          }
+        </div>
       </div>
     </div>
   }
