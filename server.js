@@ -129,7 +129,15 @@ app.use('/audio', express.static(path.join(__dirname, 'audio')));
 
 // Serve Angular app for /manager routes
 const angularDistPath = path.join(__dirname, 'preset-manager', 'dist', 'preset-manager', 'browser');
-app.use('/manager', express.static(angularDistPath));
+
+// Check if Angular dist exists
+if (fs.existsSync(angularDistPath)) {
+    console.log('[Angular] Serving preset-manager from:', angularDistPath);
+    app.use('/manager', express.static(angularDistPath));
+} else {
+    console.warn('[Angular] WARNING: Angular dist not found at:', angularDistPath);
+    console.warn('[Angular] Run "cd preset-manager && npm run build" to build the Angular app');
+}
 
 // ============ AUTHENTICATION HELPERS ============
 
@@ -312,9 +320,19 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'home.html'));
 });
 
+// Angular app - handle /manager exactly (redirect to /manager/)
+app.get('/manager', (req, res) => {
+    res.redirect('/manager/');
+});
+
 // Angular app catch-all (for client-side routing)
 app.get('/manager/*', (req, res) => {
-    res.sendFile(path.join(angularDistPath, 'index.html'));
+    const indexPath = path.join(angularDistPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        res.status(503).send('Preset Manager is not available. The Angular app may not be built yet.');
+    }
 });
 
 // ============ API ROUTES ============

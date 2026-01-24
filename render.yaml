@@ -3,7 +3,7 @@ services:
     name: samplestudio
     runtime: node
     plan: free
-    buildCommand: npm install && cd preset-manager && npm install && npm run build
+    buildCommand: npm install && cd preset-manager && npm install && npm run build -- --configuration=production
     startCommand: npm start
     envVars:
       - key: NODE_ENV
