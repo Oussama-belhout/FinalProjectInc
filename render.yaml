@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: samplestudio
+    runtime: node
+    plan: free
+    buildCommand: npm install && cd preset-manager && npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d

@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+preset-manager/node_modules/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Build outputs (will be built on Render)
+# Keep preset-manager/dist for deployment
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Audio uploads (user-generated content)
+audio/uploads/*
+!audio/uploads/.gitkeep

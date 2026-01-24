@@ -3,9 +3,13 @@
   "version": "1.0.0",
   "description": "Web-based audio sampler with 16 pads",
   "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "build": "cd preset-manager && npm install && npm run build && cd .."
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
