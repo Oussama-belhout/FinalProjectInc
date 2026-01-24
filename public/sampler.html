@@ -252,6 +252,13 @@
 
     <!-- Scripts -->
     <script src="js/auth.js"></script>
+    <script>
+        // Require authentication to access sampler
+        if (!Auth.requireAuth()) {
+            // Stop loading the page - redirect is happening
+            document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;color:#888;">Redirecting to login...</div>';
+        }
+    </script>
     <script src="js/audioEngine.js"></script>
     <script src="js/visualizer.js"></script>
     <script src="js/gui.js"></script>

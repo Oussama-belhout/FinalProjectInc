@@ -307,7 +307,7 @@ app.post('/api/auth/logout', authenticateToken, (req, res) => {
 
 // ============ PAGE ROUTES ============
 
-// Landing page (default)
+// Landing page - public, no auth required
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'home.html'));
 });
