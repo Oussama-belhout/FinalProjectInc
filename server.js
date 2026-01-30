@@ -18,7 +18,6 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 // ============ DATABASE CONNECTION WITH FALLBACK ============
 let useLocalFallback = false;
 const PRESETS_DIR = path.join(__dirname, 'presets');
-const functions = require('firebase-functions')
 
 // Ensure presets directory exists
 if (!fs.existsSync(PRESETS_DIR)) {
@@ -945,9 +944,6 @@ app.use((error, req, res, next) => {
 // ============ END API ROUTES ============
 
 // Server start
-// app.listen(PORT, () => {
-//     console.log(`[Server] Sampler server running at http://localhost:${PORT}`);
-// });
-
-exports.api = functions.https.onRequest(app)
-
+app.listen(PORT, () => {
+    console.log(`[Server] Sampler server running at http://localhost:${PORT}`);
+});
