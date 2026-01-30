@@ -941,6 +941,31 @@ app.use((error, req, res, next) => {
     res.status(500).json({ error: 'Internal server error' });
 });
 
+// 1. Serve static files from the Angular build folder
+// Note: Check if your local build creates 'dist/preset-manager/browser' or just 'dist/preset-manager'
+// Adjust the path below if necessary.
+const angularPath = path.join(__dirname, 'preset-manager', 'dist', 'preset-manager', 'browser');
+
+// Fallback: Try without '/browser' if the above doesn't exist (common in older Angular versions)
+const angularPathFallback = path.join(__dirname, 'preset-manager', 'dist', 'preset-manager');
+
+if (fs.existsSync(angularPath)) {
+    app.use(express.static(angularPath));
+    console.log(`Serving Angular from: ${angularPath}`);
+    
+    // 2. Catch-all route: Send index.html for any request that isn't an API call
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(angularPath, 'index.html'));
+    });
+} else {
+    app.use(express.static(angularPathFallback));
+    console.log(`Serving Angular from: ${angularPathFallback}`);
+    
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(angularPathFallback, 'index.html'));
+    });
+}
+// ------------------------
 // ============ END API ROUTES ============
 
 // Server start
